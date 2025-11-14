@@ -1,0 +1,22 @@
+﻿id_personal;nombre_usuario;contrasena;rol;tipo_turno;estado
+1;ANA LILYAN;usuario;farmacéutico;diurno;TRUE
+2;ANA MERCEDES;usuario;farmacéutico;diurno;TRUE
+3;AXEL FERNANDO;usuario;farmacéutico;diurno;TRUE
+4;BYRON FERNANDO;usuario;farmacéutico;diurno;TRUE
+5;CARLOS DANIEL;usuario;asistente;administrativo;TRUE
+6;CATARINA MARCELINA;usuario;farmacéutico;diurno;TRUE
+7;DEYSI NATIVIDAD SUSANA;usuario;bodeguero;bodega;TRUE
+8;EDWIN GILBERTO;usuario;farmacéutico;diurno;TRUE
+9;ERNESTO ABINADAB;admin;administrador;administrativo;TRUE
+10;ILEANA MARIBEL;admin;administrador;administrativo;TRUE
+11;JOSÉ BARTOLO;usuario;turnista;24_horas;TRUE
+12;JOSÉ;usuario;bodeguero;bodega;TRUE
+13;JUANA CRISTINA;usuario;turnista;24_horas;TRUE
+14;LEONEL EDUARDO;admin;administrador;administrativo;TRUE
+15;LIDIA LUCIA;usuario;turnista;24_horas;TRUE
+16;LOURDES ARCENNETH ;usuario;asistente;administrativo;TRUE
+17;LUIS ENRIQUE;usuario;turnista;24_horas;TRUE
+18;MELIZA GABRIELA;usuario;farmacéutico;diurno;TRUE
+19;SANDRA MARIBEL;usuario;farmacéutico;diurno;TRUE
+20;SKARLETH DAYANA;usuario;turnista;24_horas;TRUE
+21;YAILIN KARINA;usuario;asistente;administrativo;TRUE

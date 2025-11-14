@@ -1,0 +1,275 @@
+﻿nombre;descripcion;stock_minimo;dias_alerta_vencimiento;requiere_stock_24h;tipo de documento;estado
+Aceite mineral ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Acetaminofén (Paracetamol) ;Frasco;5;30;TRUE;RECETA;TRUE
+Acetaminofén (Paracetamol) ;Tableta;5;30;FALSE;RECETA;TRUE
+Acetaminofén (Paracetamol) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Acetilcisteina;Frasco;5;30;TRUE;RECETA;TRUE
+Acetona ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Aciclovir ;Ampolla;5;30;TRUE;RECETA;TRUE
+Acido Acetico ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Acido Acetilsalicilico ;Capsula;5;30;FALSE;RECETA;TRUE
+Acido Acetilsalicilico ;Tableta;5;30;FALSE;RECETA;TRUE
+Acido Fólico ;Capsula;5;30;FALSE;RECETA;TRUE
+Acido Fólico ;Tableta;5;30;FALSE;RECETA;TRUE
+Acido tranexámico ;Ampolla;5;30;TRUE;RECETA;TRUE
+Acido Valproico ;Ampolla;5;30;FALSE;RECETA;TRUE
+Adenosina ;Ampolla;5;30;TRUE;RECETA;TRUE
+Agua esteril (agua tridestilada) ;Vial;5;30;FALSE;REQUISICIÓN;TRUE
+Agua esteril (agua tridestilada) (1,000 cc) ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Agua esteril (agua tridestilada) (1,000 cc) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Albendazol ;Frasco;5;30;TRUE;RECETA;TRUE
+Albumina Humana ;Ampolla;5;30;TRUE;RECETA;TRUE
+Alcohol Etilico 95% ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Alcohol Isopropilico ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Alimentación parenteral, 1,000kcl a 1,440ml, central ;Bolsa;5;30;FALSE;RECETA;TRUE
+Alimentación parenteral, 1,400kcal, Periferica ;Bolsa;5;30;FALSE;RECETA;TRUE
+Alimentación parenteral, 1,400kcl a 1,540ml ;Bolsa;5;30;FALSE;RECETA;TRUE
+Alimentación parenteral, 900kcl, central ;Bolsa;5;30;FALSE;RECETA;TRUE
+Alteplaza;Vial;5;30;TRUE;RECETA;TRUE
+Amikacina Sulfato ;Ampolla;5;30;TRUE;RECETA;TRUE
+Aminoacidos con Electrolitos (10%) + Glucosa (50%) ;Bolsa;5;30;FALSE;RECETA;TRUE
+Aminoacidos con Electrolitos (10%) + Glucosa (50%) ;Frasco;5;30;FALSE;RECETA;TRUE
+Aminoacidos cristalinos;Frasco;5;30;TRUE;RECETA;TRUE
+Aminoacidos Pediatrico/neonatal (10%) ;Frasco;5;30;TRUE;RECETA;TRUE
+Aminofilina ;Ampolla;5;30;FALSE;RECETA;TRUE
+Amiodarona (50mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Amlodipina (5 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Amoxicilina + Sulbactam ;Frasco;5;30;FALSE;RECETA;TRUE
+Ampicilina (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ampicilina (1 g) + Sulbactam  (0.5 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Anfotericina B Liposomal (50 mg) ;Vial;5;30;TRUE;RECETA;TRUE
+Aspartato de Arginina (2.5g/5ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Aspartato de Arginina (2.5g/5ml)  pediatrica;Ampolla;5;30;TRUE;RECETA;TRUE
+Atenolol (100 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Atracurio Besilato (10mg/mL) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Atropina Sulfato (0.5mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Azitromicina (200mg/5mL) ;Frasco;5;30;FALSE;RECETA;TRUE
+Azitromicina (500 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Azitromicina (500 mg) ;Vial;5;30;TRUE;RECETA;TRUE
+Baclofen (10mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Bemiparina (2500 UI) ;Jeringa prellenada;5;30;FALSE;RECETA;TRUE
+Betametazona;Ampolla;5;30;TRUE;RECETA;TRUE
+Bicarbonato de Sodio (7.50%) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Budesonida (0.5mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Bupivacaina pesada (0.50%) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Bupivacaina sin Epinefrina y sin preservantes (0.50%) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Calcio Gluconato (10%) ;Ampolla;5;30;TRUE;REQUISICIÓN;TRUE
+Captopril (25 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Carbetocina (100mcg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+carbon Activado ;Libra;5;30;FALSE;RECETA;TRUE
+Carboprost ;Ampolla;5;30;FALSE;RECETA;TRUE
+Carboximetilcisteina (250mg/5ml) ;Frasco;5;30;TRUE;RECETA;TRUE
+Cefazolina (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Cefepima (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Cefotaxima (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ceftriaxona (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ciprofloxacina (2mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ciprofloxacina (500 mg);Tableta;5;30;FALSE;RECETA;TRUE
+Clindamicina (150mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Clindamicina (300 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Clindamicina (300 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Clopidogrel (75mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Clopidogrel (75mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Cloranfenicol Ungüento ;Tubo;5;30;FALSE;RECETA;TRUE
+Clorfeniramina (10mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Clorhexidina + Cetrimida ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Clorhexidina Gluconato (4%) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Clorhexidina Gluconato (4%) ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Clorhexidina Gluconato (5%) ;Litro;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Potasio (10%) ;Ampolla;5;30;TRUE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) + dextrosa (5%) (solucion mixta) ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) + dextrosa (5%) (solucion mixta) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) + dextrosa (5%) (solución mixta) 1,000 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) + dextrosa (5%) (solución mixta) 1,000 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 1,000 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 1,000 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 100 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 100 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 250 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 250 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 50 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 50 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 500 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de Sodio (0.90%) 500 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Cloruro de sodio (NACL) (20%) ;Ampolla;5;30;TRUE;REQUISICIÓN;TRUE
+Complejo B ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dexametasona (4mg/mL) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dexametasona (8mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Dexketoprofeno (25mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dexmedetomidina ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dextrosa (10%) 500 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (10%) 500 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (30%) 250 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (30%) 250 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 1,000 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 1,000 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 250 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 250 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 500 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Dextrosa (5%) 500 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Diazepam (5mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Diclofenaco sodico (25mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Digoxina (0.25mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Dimenhidrinato (50mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dinoprostona (0.5mg) ;Jeringa prellenada;5;30;FALSE;RECETA;TRUE
+Dipirona (Metamizol sodica) (500mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Dobutamina (12.5mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+DOLU;LAMI;5;30;FALSE;RECETA;TRUE
+DOLU;LAMI;5;30;FALSE;RECETA;TRUE
+DOLU;LAMI;5;30;FALSE;RECETA;TRUE
+Dopamina (40mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Efedrina (50mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Enoxaparina (60 mg (6,000 UI)) ;Jeringa Prellenada;5;30;TRUE;RECETA;TRUE
+Epinefrina (Adrenalina) (1mg/1mL (1:1000)) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Epinefrina Racémica;Ampolla;5;30;TRUE;RECETA;TRUE
+Ergonovina (0.2 mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Eritromicina (Solucion oftalmica 10mg/ml) ;Gotero;5;30;TRUE;RECETA;TRUE
+Eritropoyetina Humana Recombinante (Inyectable 2,000 UI/ml) ;Jeringa Prellenada;5;30;FALSE;RECETA;TRUE
+Ertapenem (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Espironolactona (100 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Estreptoquinasa (1,500,000 UI) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Fenitoina Sodica (50mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Fenobarbital (100mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Fentanilo Citrato (0.05mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Ferroso Sulfato (300 mg) ;Gotero;5;30;TRUE;RECETA;TRUE
+Ferroso Sulfato (300 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Fitomenadiona (Vitamina K1) (10mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Fluconazol (2mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Flumazenil (0.1mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Formaldehido (Formol) (37%) ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Fosfomicina (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Furosemida (10mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Gentamicina Sulfato (40mg/1ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Haloperidol (5mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Heparina Sodica (5,000UI/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Hidralazina clorhidrato (20mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Hidrocortisona (500 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Hidroxido de aluminio (185mg) + Magnesio (200mg/5ml) ;Frasco;5;30;TRUE;RECETA;TRUE
+Hierro Aminoquelado (30 mg) + Acido Folico (300 mcg/5 ml);Ampolla;5;30;FALSE;RECETA;TRUE
+Hierro Sacarosa (20mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ibuprofeno (400 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Ibuprofeno (400 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Imipenen (500 mg) + Cilastatina (500 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Indometacina (100 mg) ;Supositorio;5;30;FALSE;RECETA;TRUE
+Indometacina (25 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Indometacina (25 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Inmunex ;Bolsa;5;30;FALSE;RECETA;TRUE
+Inmunex ;Frasco;5;30;FALSE;RECETA;TRUE
+Inmunoglobulina Humana (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Inmunoglobulina Humana Anti D RHO (150 mcg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Insulina Cristalina Humana (100 UI/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Insulina de Acción Intermedia (NPH) (100 UI/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Iopramida (300 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Iopramida (370 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ioversol (64.7%) (300mg/mL) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ipratropium Bromuro  (20 ml ) ;Frasco;5;30;TRUE;RECETA;TRUE
+IRPE ;Capsula;5;30;FALSE;RECETA;TRUE
+IRPE ;Tableta;5;30;FALSE;RECETA;TRUE
+Isoflurano (100%) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Isoniacida ;Capsula;5;30;FALSE;RECETA;TRUE
+Isoniacida ;Tableta;5;30;FALSE;RECETA;TRUE
+Ketamina (50mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Ketorolaco Trometamina (60mg/2ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+kit de covid ;Bolsa;5;30;FALSE;RECETA;TRUE
+Labetalol;Ampolla;5;30;TRUE;RECETA;TRUE
+Lactulosa ;Frasco;5;30;TRUE;RECETA;TRUE
+Lamivudina ;Frasco;5;30;FALSE;RECETA;TRUE
+Levetiracetam ;Ampolla;5;30;TRUE;RECETA;TRUE
+Levocarnitina (1g/5ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Levonorgestrel (0.15 mg) + etinilestradiol (0.03 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Levonorgestrel (0.15 mg) + etinilestradiol (0.03 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Levosulpiride ;Ampolla;5;30;FALSE;RECETA;TRUE
+Lidocaina clorhidrato con epinefrina (Sin preservante) (2%);Vial;5;30;TRUE;REQUISICIÓN;TRUE
+Lidocaina Clorhidrato sin Epinefrina, sin preservante (simple) ;Vial;5;30;TRUE;REQUISICIÓN;TRUE
+Linezolid ;Bolsa;5;30;TRUE;RECETA;TRUE
+Linezolid ;Frasco;5;30;FALSE;RECETA;TRUE
+Lipidos (20%) ;Bolsa;5;30;FALSE;RECETA;TRUE
+Lipidos (20%) ;Frasco;5;30;TRUE;RECETA;TRUE
+Lopinavir/Ritonavir ;Frasco;5;30;FALSE;RECETA;TRUE
+Lubricante ;Sobre;5;30;FALSE;REQUISICIÓN;TRUE
+Magnesio Sulfato (50%) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Manitol (25%) (250mg/mL) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Meperidina clorhidrato (50mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Meropenem (500 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Metformina (850 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Metformina (850 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Metildopa (250 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Metildopa (250 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Metilprednisolona succinato (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Metoclopramida Clorhidrato (5 mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Metronidazol (125mg/5ml) ;Frasco;5;30;FALSE;RECETA;TRUE
+Metronidazol (5 mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Metronidazol (500 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Metronidazol (500 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Midazolam (5 mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Misoprostol (200 mcg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Misoprostol (200 mcg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Morfina (10mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Multivitaminas Y Minerales ;Frasco;5;30;TRUE;RECETA;TRUE
+Naloxona (0.4mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Neostigmina metilsulfato (0.5mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Nevirapine ;Frasco;5;30;FALSE;RECETA;TRUE
+Nifedipina (10 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Nifedipina (10 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Nistatina (100,000 UI/ml) ;Gotero;5;30;TRUE;RECETA;TRUE
+Norepinefrina (1mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Octreotida ;Ampolla;5;30;FALSE;RECETA;TRUE
+Ofloxacina (40mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Oligoelementos;Vial;5;30;TRUE;RECETA;TRUE
+Omeprazol (20 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Omeprazol (20 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Omeprazol (40mg/10ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ondansetron;Ampolla;5;30;TRUE;RECETA;TRUE
+Oxacilina (1 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Oxitocina Sintetica (5 UI/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Pasta lasar ;Tarro;5;30;TRUE;RECETA;TRUE
+Penicilina Cristalina (1,000,000) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Penicilina G Benzatinica (1,200,000 UI) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Peroxido de Hidrogeno (agua oxigenada) (3%) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Piperacilina (4 g) + Tazobactam (0.5 g) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Piridoxina ;Capsula;5;30;FALSE;RECETA;TRUE
+Piridoxina ;Tableta;5;30;FALSE;RECETA;TRUE
+Polimixina B ;Ampolla;5;30;TRUE;RECETA;TRUE
+Prednisona (5 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Prednisona (5 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+PROBIOTICOS (Lactobacillus reuteri) Biogaia ;Gotero;5;30;TRUE;RECETA;TRUE
+Propinoxato (15mg) + Clonixinato de lisina (100 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Propofol (10mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Ranitidina clorhidrato (25mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Remdisivir (100mg) Vial/Ampolla;Perla;5;30;FALSE;RECETA;TRUE
+Retinol (Vitamina A ;Frasco;5;30;FALSE;RECETA;TRUE
+Rifapentina ;Capsula;5;30;FALSE;RECETA;TRUE
+Rifapentina ;Tableta;5;30;FALSE;RECETA;TRUE
+Ritodrina (10mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Salbutamol sulfato (5mg/ml) ;Gotero;5;30;TRUE;RECETA;TRUE
+Sales de Rehidratacion ;Sobre;5;30;TRUE;REQUISICIÓN;TRUE
+Sevoflurano (100%) ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Simeticona;Gotero;5;30;TRUE;RECETA;TRUE
+Solucion Hartman 1,000 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Solucion Hartman 1,000 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Solucion Hartman 500 ml ;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Solucion Hartman 500 ml ;Frasco;5;30;FALSE;REQUISICIÓN;TRUE
+Solucion No.1 (MEZCLA 1 Dextrosa y Cloruro de Sodio) 250 ml;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Solucion No.2 (MEZCLA 2 Dextrosa y Cloruro de Sodio) 250 ml;Bolsa;5;30;FALSE;REQUISICIÓN;TRUE
+Succinilcolina (500 mg) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Suero antiofidico polivalente (Especies de Guatemala) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Sulfato de Zinc (20 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Sulfato de Zinc (20 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Surfactante Pulmonar (25mg/ml) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Terlipresina ;Ampolla;5;30;TRUE;RECETA;TRUE
+Tiamina (Vitamina B1) (100mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Tigeciclina (50 mg) ;Ampolla;5;30;FALSE;RECETA;TRUE
+Timerosal (0.1g/100ml) ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Tintura de Benjui (10%) ;Galón;5;30;FALSE;REQUISICIÓN;TRUE
+Tramadol (50mg/ml) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Trimetoprima (160 mg) + Sulfametoxazol (800 mg) ;Capsula;5;30;FALSE;RECETA;TRUE
+Trimetoprima (160 mg) + Sulfametoxazol (800 mg) ;Tableta;5;30;FALSE;RECETA;TRUE
+Trimetoprima + Sulfametoxazol ;Ampolla;5;30;FALSE;RECETA;TRUE
+Vancomicina (500 mg) ;Ampolla;5;30;TRUE;RECETA;TRUE
+Vaselina ;Cubeta;5;30;FALSE;RECETA;TRUE
+Vasopresina ;Ampolla;5;30;FALSE;RECETA;TRUE
+Vecuronio ;Ampolla;5;30;TRUE;RECETA;TRUE
+Zidovudina ;Capsula;5;30;FALSE;RECETA;TRUE
+Zidovudina ;Tableta;5;30;FALSE;RECETA;TRUE
+Zidovudina ;Ampolla;5;30;FALSE;RECETA;TRUE
+Zidovudina  ;Frasco;5;30;FALSE;RECETA;TRUE

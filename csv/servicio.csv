@@ -1,0 +1,38 @@
+﻿nombre_servicio;descripcion;requiere_stock_24h;numero_camas;estado
+Aislamiento;Aisl;TRUE;;TRUE
+Anestesia;Anest;TRUE;;TRUE
+Banco de Leche;BL;TRUE;;TRUE
+Cirugia de Hombres;CH;TRUE;;TRUE
+Cirugia de Mujeres;CM;TRUE;;TRUE
+Cirugia Pediatrica;CP;TRUE;;TRUE
+Consulta Externa;COEX;TRUE;;TRUE
+Emergencia General;EG;TRUE;;TRUE
+Emergencia Maternidad;EM;TRUE;;TRUE
+Emergencia Pediatrica;EP;TRUE;;TRUE
+Ginecologia;GINE;TRUE;;TRUE
+Itermedio de Adultos;IA;TRUE;;TRUE
+Labaor y Parto;LyP;TRUE;;TRUE
+Maternidad;Mater;TRUE;;TRUE
+Medicina de Hombres;MH;TRUE;;TRUE
+Medicina de Mujeres;MM;TRUE;;TRUE
+Medicina Pediatrica;MP;TRUE;;TRUE
+Neurocirugia CH;NCH;TRUE;;TRUE
+Neurocirugia CM;NCM;TRUE;;TRUE
+Neurologia Pediatrica;NP;TRUE;;TRUE
+Nutricion;Nutri;TRUE;;TRUE
+Observacion de Adultos;OA;TRUE;;TRUE
+Observacion de Pediatrica;OP;TRUE;;TRUE
+Pediatria A;Pa;TRUE;;TRUE
+Pediatria B;Pb;TRUE;;TRUE
+Pediatria C;Pc;TRUE;;TRUE
+Psiquiatria;Psq;TRUE;;TRUE
+RN Patologico;RNp;TRUE;;TRUE
+Sala de Operaciones;SOP;TRUE;;TRUE
+Traumatologia de Hombres;TH;TRUE;;TRUE
+Traumatologia de Mujeres;TM;TRUE;;TRUE
+Traumatologia Pediatrica;TP;TRUE;;TRUE
+Unidad de Atencion Integral;UAI;TRUE;;TRUE
+Unidad de Cuidados Intensivos de de Adultos;UCIA;TRUE;;TRUE
+Unidad de Cuidados Intensivos Neonatales;UCIN;TRUE;;TRUE
+Unidad de Cuidados Intensivos Pediatricos;UCIP;TRUE;;TRUE
+Victima de Sobrevivientes de Violencia Sexual;VSVS;TRUE;;TRUE

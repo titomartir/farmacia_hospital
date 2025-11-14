@@ -1,0 +1,12 @@
+﻿nombre;abreviatura;estado;numero
+Galon;Galon;TRUE;1
+Gramo;gr;TRUE;2
+Litro;L;TRUE;3
+Microgramo;mgr;TRUE;4
+Miliequivalente/litro;ml/L;TRUE;5
+Miligramo;mlgr;TRUE;6
+Miligramos/mililitro;mlgr/ml;TRUE;7
+Mililitro;ml;TRUE;8
+Porcentaje;%;TRUE;9
+UI/ML;UI/ML;TRUE;10
+Libra;Lb;TRUE;11
