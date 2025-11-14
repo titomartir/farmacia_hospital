@@ -28,20 +28,21 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Autocomplete
+  alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Visibility as VisibilityIcon,
-  LocalShipping as LocalShippingIcon,
   Print as PrintIcon,
   Refresh as RefreshIcon,
-  Search as SearchIcon
+  FilterList as FilterListIcon,
 } from '@mui/icons-material';
 import api from '../services/api';
 import NuevoIngresoDialog from '../components/forms/NuevoIngresoDialog';
 
 const Ingresos = () => {
+  const theme = useTheme();
   const [ingresos, setIngresos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
@@ -54,7 +55,6 @@ const Ingresos = () => {
   const [selectedIngreso, setSelectedIngreso] = useState(null);
   const [openDetalleDialog, setOpenDetalleDialog] = useState(false);
   
-  // Filtros
   const [filtros, setFiltros] = useState({
     tipo_ingreso: '',
     proveedor: '',
@@ -86,11 +86,8 @@ const Ingresos = () => {
   const cargarUsuarios = async () => {
     try {
       const response = await api.get('/auth/usuarios');
-      console.log('Respuesta de usuarios:', response.data);
       if (response.data.success) {
-        const usuariosData = response.data.data || [];
-        console.log('Usuarios cargados:', usuariosData);
-        setUsuarios(usuariosData);
+        setUsuarios(response.data.data || []);
       }
     } catch (err) {
       console.error('Error cargando usuarios:', err);
@@ -119,18 +116,14 @@ const Ingresos = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al cargar ingresos');
-      console.error('Error cargando ingresos:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleFiltroChange = (campo, valor) => {
-    setFiltros(prev => ({
-      ...prev,
-      [campo]: valor
-    }));
-    setPage(0); // Resetear a la primera página
+    setFiltros(prev => ({ ...prev, [campo]: valor }));
+    setPage(0);
   };
 
   const handleLimpiarFiltros = () => {
@@ -159,7 +152,7 @@ const Ingresos = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    cargarIngresos(); // Recargar después de crear
+    cargarIngresos();
   };
 
   const handleVerDetalle = (ingreso) => {
@@ -193,282 +186,167 @@ const Ingresos = () => {
     }).format(valor);
   };
 
-  if (loading && ingresos.length === 0) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  };
-
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">
-          Ingresos de Medicamentos
-        </Typography>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<PrintIcon />}
-            onClick={() => window.print()}
-          >
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Ingresos de Medicamentos
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Registro de compras y devoluciones
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
             Imprimir
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={cargarIngresos}
-          >
+          <Button variant="outlined" startIcon={<RefreshIcon />} onClick={cargarIngresos} disabled={loading}>
             Actualizar
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleNuevoIngreso}
-          >
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleNuevoIngreso}>
             Nuevo Ingreso
           </Button>
         </Stack>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
-      {/* Filtros */}
-      <Card sx={{ mb: 3 }}>
+      <Card elevation={0} sx={{ mb: 3, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Filtros
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <FilterListIcon color="primary" />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Filtros
+            </Typography>
+          </Box>
           <Grid container spacing={2}>
             <Grid item xs={12} md={2}>
-              <FormControl fullWidth size="small">
+              <FormControl fullWidth>
                 <InputLabel>Tipo</InputLabel>
-                <Select
-                  value={filtros.tipo_ingreso}
-                  onChange={(e) => handleFiltroChange('tipo_ingreso', e.target.value)}
-                  label="Tipo"
-                >
+                <Select value={filtros.tipo_ingreso} onChange={(e) => handleFiltroChange('tipo_ingreso', e.target.value)} label="Tipo">
                   <MenuItem value="">Todos</MenuItem>
                   <MenuItem value="COMPRA">Compra</MenuItem>
                   <MenuItem value="DEVOLUCION">Devolución</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12} md={2.5}>
-              <FormControl fullWidth size="small">
+              <FormControl fullWidth>
                 <InputLabel>Proveedor</InputLabel>
-                <Select
-                  value={filtros.proveedor}
-                  onChange={(e) => handleFiltroChange('proveedor', e.target.value)}
-                  label="Proveedor"
-                >
+                <Select value={filtros.proveedor} onChange={(e) => handleFiltroChange('proveedor', e.target.value)} label="Proveedor">
                   <MenuItem value="">Todos</MenuItem>
                   {proveedores.map((prov) => (
-                    <MenuItem key={prov.id_proveedor} value={prov.id_proveedor}>
-                      {prov.nombre}
-                    </MenuItem>
+                    <MenuItem key={prov.id_proveedor} value={prov.id_proveedor}>{prov.nombre}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12} md={2.5}>
-              <FormControl fullWidth size="small">
+              <FormControl fullWidth>
                 <InputLabel>Registrado Por</InputLabel>
-                <Select
-                  value={filtros.usuario}
-                  onChange={(e) => handleFiltroChange('usuario', e.target.value)}
-                  label="Registrado Por"
-                >
+                <Select value={filtros.usuario} onChange={(e) => handleFiltroChange('usuario', e.target.value)} label="Registrado Por">
                   <MenuItem value="">Todos</MenuItem>
                   {usuarios.map((usr) => (
                     <MenuItem key={usr.id_usuario} value={usr.id_usuario}>
-                      {usr.personal?.nombres && usr.personal?.apellidos 
-                        ? `${usr.personal.nombres} ${usr.personal.apellidos}` 
-                        : usr.nombre_usuario}
+                      {usr.personal?.nombres && usr.personal?.apellidos ? `${usr.personal.nombres} ${usr.personal.apellidos}` : usr.nombre_usuario}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Desde"
-                value={filtros.fecha_desde}
-                onChange={(e) => handleFiltroChange('fecha_desde', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
+              <TextField fullWidth type="date" label="Desde" value={filtros.fecha_desde} onChange={(e) => handleFiltroChange('fecha_desde', e.target.value)} InputLabelProps={{ shrink: true }} />
             </Grid>
-
             <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Hasta"
-                value={filtros.fecha_hasta}
-                onChange={(e) => handleFiltroChange('fecha_hasta', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
+              <TextField fullWidth type="date" label="Hasta" value={filtros.fecha_hasta} onChange={(e) => handleFiltroChange('fecha_hasta', e.target.value)} InputLabelProps={{ shrink: true }} />
             </Grid>
-
             <Grid item xs={12} md={1}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleLimpiarFiltros}
-                sx={{ height: '100%' }}
-              >
-                Limpiar
-              </Button>
+              <Button fullWidth variant="outlined" onClick={handleLimpiarFiltros} sx={{ height: '56px' }}>Limpiar</Button>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Fecha</TableCell>
+                <TableCell>Proveedor</TableCell>
+                <TableCell>Factura</TableCell>
+                <TableCell align="right">Total</TableCell>
+                <TableCell>Registrado Por</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
                 <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Tipo</TableCell>
-                  <TableCell>Fecha</TableCell>
-                  <TableCell>Proveedor</TableCell>
-                  <TableCell>Factura</TableCell>
-                  <TableCell align="right">Total</TableCell>
-                  <TableCell>Registrado Por</TableCell>
-                  <TableCell align="center">Acciones</TableCell>
+                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}><CircularProgress /></TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      <CircularProgress size={30} />
+              ) : ingresos.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}>
+                    <Typography color="text.secondary">No hay ingresos registrados</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                ingresos.map((ingreso) => (
+                  <TableRow key={ingreso.id_ingreso} hover>
+                    <TableCell><Chip label={`#${ingreso.id_ingreso}`} size="small" variant="outlined" /></TableCell>
+                    <TableCell><Chip label={ingreso.tipo_ingreso} color={getTipoColor(ingreso.tipo_ingreso)} size="small" /></TableCell>
+                    <TableCell><Typography variant="body2">{formatearFecha(ingreso.fecha_ingreso)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{ingreso.proveedor?.nombre || 'N/A'}</Typography></TableCell>
+                    <TableCell><Typography variant="body2" color="text.secondary">{ingreso.numero_factura || 'N/A'}</Typography></TableCell>
+                    <TableCell align="right"><Typography variant="body2" sx={{ fontWeight: 600 }}>{formatearMoneda(ingreso.total)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{ingreso.usuario?.personal?.nombres} {ingreso.usuario?.personal?.apellidos}</Typography></TableCell>
+                    <TableCell align="center">
+                      <IconButton size="small" color="primary" onClick={() => handleVerDetalle(ingreso)}><VisibilityIcon /></IconButton>
                     </TableCell>
                   </TableRow>
-                ) : ingresos.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      <Typography color="textSecondary">
-                        No hay ingresos registrados
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  ingresos.map((ingreso) => (
-                    <TableRow key={ingreso.id_ingreso}>
-                      <TableCell>{ingreso.id_ingreso}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={ingreso.tipo_ingreso}
-                          color={getTipoColor(ingreso.tipo_ingreso)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{formatearFecha(ingreso.fecha_ingreso)}</TableCell>
-                      <TableCell>{ingreso.proveedor?.nombre || 'N/A'}</TableCell>
-                      <TableCell>{ingreso.numero_factura || 'N/A'}</TableCell>
-                      <TableCell align="right">{formatearMoneda(ingreso.total)}</TableCell>
-                      <TableCell>
-                        {ingreso.usuario?.personal?.nombres} {ingreso.usuario?.personal?.apellidos}
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleVerDetalle(ingreso)}
-                          title="Ver detalle"
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <TablePagination
-            component="div"
-            count={totalRegistros}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Filas por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-          />
-        </CardContent>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination component="div" count={totalRegistros} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} labelRowsPerPage="Filas por página:" labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`} />
       </Card>
 
-      {/* Dialog para nuevo ingreso */}
-      <NuevoIngresoDialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-      />
+      <NuevoIngresoDialog open={openDialog} onClose={handleCloseDialog} />
 
-      {/* Dialog para detalle del ingreso */}
-      <Dialog
-        open={openDetalleDialog}
-        onClose={handleCloseDetalleDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Detalle del Ingreso #{selectedIngreso?.id_ingreso}
-        </DialogTitle>
+      <Dialog open={openDetalleDialog} onClose={handleCloseDetalleDialog} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle><Typography variant="h6" sx={{ fontWeight: 600 }}>Detalle del Ingreso #{selectedIngreso?.id_ingreso}</Typography></DialogTitle>
         <DialogContent>
           {selectedIngreso && (
             <Box>
-              <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid container spacing={3} sx={{ mb: 3, mt: 0.5 }}>
                 <Grid item xs={6}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Tipo:
-                  </Typography>
-                  <Chip
-                    label={selectedIngreso.tipo_ingreso}
-                    color={getTipoColor(selectedIngreso.tipo_ingreso)}
-                    size="small"
-                  />
+                  <Typography variant="caption" color="text.secondary">Tipo:</Typography>
+                  <Box mt={0.5}><Chip label={selectedIngreso.tipo_ingreso} color={getTipoColor(selectedIngreso.tipo_ingreso)} size="small" /></Box>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Fecha:
-                  </Typography>
-                  <Typography>{formatearFecha(selectedIngreso.fecha_ingreso)}</Typography>
+                  <Typography variant="caption" color="text.secondary">Fecha:</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>{formatearFecha(selectedIngreso.fecha_ingreso)}</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Proveedor:
-                  </Typography>
-                  <Typography>{selectedIngreso.proveedor?.nombre || 'N/A'}</Typography>
+                  <Typography variant="caption" color="text.secondary">Proveedor:</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 500 }}>{selectedIngreso.proveedor?.nombre || 'N/A'}</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Factura:
-                  </Typography>
-                  <Typography>{selectedIngreso.numero_factura || 'N/A'}</Typography>
+                  <Typography variant="caption" color="text.secondary">Factura:</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>{selectedIngreso.numero_factura || 'N/A'}</Typography>
                 </Grid>
               </Grid>
-
-              <Typography variant="h6" gutterBottom>
-                Medicamentos
-              </Typography>
-              <TableContainer component={Paper} variant="outlined">
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>Medicamentos</Typography>
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -483,54 +361,35 @@ const Ingresos = () => {
                   </TableHead>
                   <TableBody>
                     {selectedIngreso.detalles?.map((detalle, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {detalle.insumoPresentacion?.insumo?.nombre}
-                        </TableCell>
-                        <TableCell>
-                          {detalle.insumoPresentacion?.presentacion?.nombre}
-                        </TableCell>
+                      <TableRow key={index} hover>
+                        <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{detalle.insumoPresentacion?.insumo?.nombre}</Typography></TableCell>
+                        <TableCell>{detalle.insumoPresentacion?.presentacion?.nombre}</TableCell>
                         <TableCell>{detalle.lote}</TableCell>
                         <TableCell>{formatearFecha(detalle.fecha_vencimiento)}</TableCell>
                         <TableCell align="right">{detalle.cantidad}</TableCell>
                         <TableCell align="right">{formatearMoneda(detalle.precio_unitario)}</TableCell>
-                        <TableCell align="right">
-                          {formatearMoneda(detalle.cantidad * detalle.precio_unitario)}
-                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearMoneda(detalle.cantidad * detalle.precio_unitario)}</TableCell>
                       </TableRow>
                     ))}
-                    <TableRow>
-                      <TableCell colSpan={6} align="right">
-                        <strong>TOTAL:</strong>
-                      </TableCell>
-                      <TableCell align="right">
-                        <strong>{formatearMoneda(selectedIngreso.total)}</strong>
-                      </TableCell>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.success.main, 0.08) }}>
+                      <TableCell colSpan={6} align="right"><Typography variant="subtitle1" sx={{ fontWeight: 700 }}>TOTAL:</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{formatearMoneda(selectedIngreso.total)}</Typography></TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>
-
               {selectedIngreso.observaciones && (
-                <Box mt={2}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Observaciones:
-                  </Typography>
-                  <Typography>{selectedIngreso.observaciones}</Typography>
+                <Box mt={3} p={2} sx={{ bgcolor: 'grey.50', borderRadius: 2 }}>
+                  <Typography variant="caption" color="text.secondary">Observaciones:</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>{selectedIngreso.observaciones}</Typography>
                 </Box>
               )}
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            startIcon={<PrintIcon />}
-            onClick={() => window.print()}
-          >
-            Imprimir
-          </Button>
-          <Button onClick={handleCloseDetalleDialog}>Cerrar</Button>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>Imprimir</Button>
+          <Button onClick={handleCloseDetalleDialog} variant="contained">Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>

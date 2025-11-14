@@ -41,6 +41,8 @@ import api from '../services/api';
 
 const Insumos = () => {
   const [insumos, setInsumos] = useState([]);
+  const [presentaciones, setPresentaciones] = useState([]);
+  const [unidadesMedida, setUnidadesMedida] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,12 +58,41 @@ const Insumos = () => {
     descripcion: '',
     clasificacion: 'listado_basico',
     subclasificacion: '',
-    estado: true
+    estado: true,
+    // Nuevos campos para la presentación
+    id_presentacion: '',
+    id_unidad_medida: '',
+    cantidad_presentacion: '',
+    stock_minimo: ''
   });
 
   useEffect(() => {
     cargarInsumos();
+    cargarPresentaciones();
+    cargarUnidadesMedida();
   }, []);
+
+  const cargarPresentaciones = async () => {
+    try {
+      const response = await api.get('/catalogos/presentaciones');
+      if (response.data.success) {
+        setPresentaciones(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error cargando presentaciones:', err);
+    }
+  };
+
+  const cargarUnidadesMedida = async () => {
+    try {
+      const response = await api.get('/catalogos/unidades-medida');
+      if (response.data.success) {
+        setUnidadesMedida(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error cargando unidades de medida:', err);
+    }
+  };
 
   const cargarInsumos = async () => {
     try {
@@ -87,7 +118,11 @@ const Insumos = () => {
         descripcion: insumo.descripcion || '',
         clasificacion: insumo.clasificacion || 'listado_basico',
         subclasificacion: insumo.subclasificacion || '',
-        estado: insumo.estado !== undefined ? insumo.estado : true
+        estado: insumo.estado !== undefined ? insumo.estado : true,
+        id_presentacion: '',
+        id_unidad_medida: '',
+        cantidad_presentacion: '',
+        stock_minimo: insumo.stock_minimo || ''
       });
     } else {
       setEditingInsumo(null);
@@ -96,7 +131,11 @@ const Insumos = () => {
         descripcion: '',
         clasificacion: 'listado_basico',
         subclasificacion: '',
-        estado: true
+        estado: true,
+        id_presentacion: '',
+        id_unidad_medida: '',
+        cantidad_presentacion: '',
+        stock_minimo: ''
       });
     }
     setOpenDialog(true);
@@ -110,7 +149,11 @@ const Insumos = () => {
       descripcion: '',
       clasificacion: 'listado_basico',
       subclasificacion: '',
-      estado: true
+      estado: true,
+      id_presentacion: '',
+      id_unidad_medida: '',
+      cantidad_presentacion: '',
+      stock_minimo: ''
     });
   };
 
@@ -172,9 +215,10 @@ const Insumos = () => {
   });
 
   return (
-    <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+    <Box sx={{ p: 0 }}>
+      {/* Header */}
+      <Box sx={{ mb: 1, mx: 1, mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Gestión de Insumos
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -182,6 +226,7 @@ const Insumos = () => {
             variant="outlined"
             startIcon={<PrintIcon />}
             onClick={handleImprimir}
+            size="small"
           >
             Imprimir
           </Button>
@@ -189,6 +234,7 @@ const Insumos = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            size="small"
           >
             Nuevo Insumo
           </Button>
@@ -196,17 +242,19 @@ const Insumos = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 1 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={2}>
+      {/* Filtros */}
+      <Card sx={{ mb: 1, mx: 1 }} elevation={2}>
+        <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+          <Grid container spacing={1.5}>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
+                size="small"
                 placeholder="Buscar insumo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -215,8 +263,8 @@ const Insumos = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
+            <Grid item xs={6} md={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Clasificación</InputLabel>
                 <Select
                   value={filtros.clasificacion}
@@ -230,8 +278,8 @@ const Insumos = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
+            <Grid item xs={6} md={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Subclasificación</InputLabel>
                 <Select
                   value={filtros.subclasificacion}
@@ -244,8 +292,8 @@ const Insumos = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth>
+            <Grid item xs={6} md={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Estado</InputLabel>
                 <Select
                   value={filtros.estado}
@@ -258,33 +306,33 @@ const Insumos = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <Box sx={{ display: 'flex', gap: 1, height: '100%' }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleLimpiarFiltros}
-                >
-                  Limpiar
-                </Button>
-              </Box>
+            <Grid item xs={6} md={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={handleLimpiarFiltros}
+                size="small"
+              >
+                Limpiar
+              </Button>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      <TableContainer component={Paper}>
-        <Table>
+      {/* Tabla */}
+      <TableContainer component={Paper} elevation={2} sx={{ mx: 1 }}>
+        <Table size="small" sx={{ '& .MuiTableCell-root': { py: 0.75 } }}>
           <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Descripción</TableCell>
-              <TableCell>Clasificación</TableCell>
-              <TableCell>Subclasificación</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell align="right">Acciones</TableCell>
+            <TableRow sx={{ bgcolor: 'grey.50' }}>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>ID</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Nombre</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Descripción</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Clasificación</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Subclasificación</TableCell>
+              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Estado</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -360,69 +408,180 @@ const Insumos = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>
+          <DialogTitle sx={{ pb: 1 }}>
             {editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}
           </DialogTitle>
           <DialogContent>
-            <TextField
-              fullWidth
-              label="Nombre"
-              value={formData.nombre}
-              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Descripción"
-              value={formData.descripcion}
-              onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-              multiline
-              rows={3}
-              margin="normal"
-            />
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel>Clasificación</InputLabel>
-              <Select
-                value={formData.clasificacion}
-                onChange={(e) => setFormData({ ...formData, clasificacion: e.target.value })}
-                label="Clasificación"
-              >
-                <MenuItem value="listado_basico">Listado Básico</MenuItem>
-                <MenuItem value="vih">VIH</MenuItem>
-                <MenuItem value="metodo_anticonceptivo">Método Anticonceptivo</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Subclasificación</InputLabel>
-              <Select
-                value={formData.subclasificacion}
-                onChange={(e) => setFormData({ ...formData, subclasificacion: e.target.value })}
-                label="Subclasificación"
-              >
-                <MenuItem value="">Ninguna</MenuItem>
-                <MenuItem value="requisicion">Requisición</MenuItem>
-                <MenuItem value="receta">Receta</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.estado}
-                  onChange={(e) => setFormData({ ...formData, estado: e.target.checked })}
-                  color="primary"
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 600 }}>
+                  Información General
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Nombre del Medicamento"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  required
+                  placeholder="Ej: Acetaminofén"
                 />
-              }
-              label={formData.estado ? 'Activo' : 'Inactivo'}
-              sx={{ mt: 2 }}
-            />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Descripción"
+                  value={formData.descripcion}
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  multiline
+                  rows={2}
+                  placeholder="Descripción del medicamento"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth required size="small">
+                  <InputLabel>Clasificación</InputLabel>
+                  <Select
+                    value={formData.clasificacion}
+                    onChange={(e) => setFormData({ ...formData, clasificacion: e.target.value })}
+                    label="Clasificación"
+                  >
+                    <MenuItem value="listado_basico">Listado Básico</MenuItem>
+                    <MenuItem value="vih">VIH</MenuItem>
+                    <MenuItem value="metodo_anticonceptivo">Método Anticonceptivo</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Subclasificación</InputLabel>
+                  <Select
+                    value={formData.subclasificacion}
+                    onChange={(e) => setFormData({ ...formData, subclasificacion: e.target.value })}
+                    label="Subclasificación"
+                  >
+                    <MenuItem value="">Ninguna</MenuItem>
+                    <MenuItem value="requisicion">Requisición</MenuItem>
+                    <MenuItem value="receta">Receta</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {!editingInsumo && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary" sx={{ mt: 1, fontWeight: 600 }}>
+                      Presentación y Medida
+                    </Typography>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth required size="small">
+                      <InputLabel>Presentación</InputLabel>
+                      <Select
+                        value={formData.id_presentacion}
+                        onChange={(e) => setFormData({ ...formData, id_presentacion: e.target.value })}
+                        label="Presentación"
+                      >
+                        <MenuItem value="">Seleccione...</MenuItem>
+                        {presentaciones.map((pres) => (
+                          <MenuItem key={pres.id_presentacion} value={pres.id_presentacion}>
+                            {pres.nombre}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth required size="small">
+                      <InputLabel>Unidad de Medida</InputLabel>
+                      <Select
+                        value={formData.id_unidad_medida}
+                        onChange={(e) => setFormData({ ...formData, id_unidad_medida: e.target.value })}
+                        label="Unidad de Medida"
+                      >
+                        <MenuItem value="">Seleccione...</MenuItem>
+                        {unidadesMedida.map((unidad) => (
+                          <MenuItem key={unidad.id_unidad_medida} value={unidad.id_unidad_medida}>
+                            {unidad.nombre} ({unidad.abreviatura})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Cantidad por Presentación"
+                      type="number"
+                      value={formData.cantidad_presentacion}
+                      onChange={(e) => setFormData({ ...formData, cantidad_presentacion: e.target.value })}
+                      required
+                      inputProps={{ min: 0.01, step: 0.01 }}
+                      placeholder="Ej: 500 (mg)"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Stock Mínimo"
+                      type="number"
+                      value={formData.stock_minimo}
+                      onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
+                      required
+                      inputProps={{ min: 0, step: 1 }}
+                      placeholder="Cantidad mínima"
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {editingInsumo && (
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Stock Mínimo"
+                    type="number"
+                    value={formData.stock_minimo}
+                    onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
+                    inputProps={{ min: 0, step: 1 }}
+                  />
+                </Grid>
+              )}
+
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.estado}
+                      onChange={(e) => setFormData({ ...formData, estado: e.target.checked })}
+                      color="primary"
+                    />
+                  }
+                  label={formData.estado ? 'Activo' : 'Inactivo'}
+                />
+              </Grid>
+            </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={24} /> : 'Guardar'}
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={handleCloseDialog} size="small">Cancelar</Button>
+            <Button type="submit" variant="contained" disabled={loading} size="small">
+              {loading ? <CircularProgress size={20} /> : 'Guardar'}
             </Button>
           </DialogActions>
         </form>

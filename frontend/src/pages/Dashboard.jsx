@@ -7,6 +7,8 @@ import {
   Box,
   Paper,
   Alert,
+  alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Inventory,
@@ -32,12 +34,12 @@ import {
 import api from '../services/api';
 
 const Dashboard = () => {
+  const theme = useTheme();
   const [estadisticas, setEstadisticas] = useState(null);
   const [alertas, setAlertas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Datos para gráficos
   const [consumoServicio, setConsumoServicio] = useState([]);
   const [stockEstado, setStockEstado] = useState([]);
   const [tendenciaRequisiciones, setTendenciaRequisiciones] = useState([]);
@@ -46,7 +48,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     cargarDatos();
-    // Auto-refresh cada 5 minutos
     const interval = setInterval(cargarDatos, 300000);
     return () => clearInterval(interval);
   }, []);
@@ -72,33 +73,13 @@ const Dashboard = () => {
         api.get('/dashboard/graficos/costos-servicio'),
       ]);
 
-      if (statsRes.data.success) {
-        setEstadisticas(statsRes.data.data);
-      }
-
-      if (alertasRes.data.success) {
-        setAlertas(alertasRes.data.data);
-      }
-
-      if (consumoRes.data.success) {
-        setConsumoServicio(consumoRes.data.data);
-      }
-
-      if (stockRes.data.success) {
-        setStockEstado(stockRes.data.data);
-      }
-
-      if (tendenciaRes.data.success) {
-        setTendenciaRequisiciones(tendenciaRes.data.data);
-      }
-
-      if (vencerRes.data.success) {
-        setProximosVencer(vencerRes.data.data);
-      }
-
-      if (costosRes.data.success) {
-        setCostosServicio(costosRes.data.data);
-      }
+      if (statsRes.data.success) setEstadisticas(statsRes.data.data);
+      if (alertasRes.data.success) setAlertas(alertasRes.data.data);
+      if (consumoRes.data.success) setConsumoServicio(consumoRes.data.data);
+      if (stockRes.data.success) setStockEstado(stockRes.data.data);
+      if (tendenciaRes.data.success) setTendenciaRequisiciones(tendenciaRes.data.data);
+      if (vencerRes.data.success) setProximosVencer(vencerRes.data.data);
+      if (costosRes.data.success) setCostosServicio(costosRes.data.data);
     } catch (err) {
       setError('Error al cargar los datos del dashboard');
       console.error(err);
@@ -107,29 +88,48 @@ const Dashboard = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, color }) => (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  const StatCard = ({ title, value, icon: Icon, gradient }) => (
+    <Card 
+      elevation={0}
+      sx={{
+        background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
+        color: 'white',
+        height: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: -50,
+          right: -50,
+          width: 150,
+          height: 150,
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '50%',
+        }
+      }}
+    >
+      <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography color="textSecondary" gutterBottom variant="body2">
+            <Typography variant="body2" sx={{ opacity: 0.9, mb: 1, fontWeight: 500 }}>
               {title}
             </Typography>
-            <Typography variant="h4">
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
               {value}
             </Typography>
           </Box>
           <Box
             sx={{
-              bgcolor: `${color}.light`,
-              borderRadius: 2,
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: 3,
               p: 1.5,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            {icon}
+            <Icon sx={{ fontSize: 32 }} />
           </Box>
         </Box>
       </CardContent>
@@ -137,7 +137,11 @@ const Dashboard = () => {
   );
 
   if (loading) {
-    return <Typography>Cargando...</Typography>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography>Cargando...</Typography>
+      </Box>
+    );
   }
 
   if (error) {
@@ -146,56 +150,75 @@ const Dashboard = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Resumen general del sistema de farmacia
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      {/* Tarjetas de estadísticas */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Insumos"
             value={estadisticas?.totalInsumos || 0}
-            icon={<Inventory sx={{ color: 'primary.main' }} />}
-            color="primary"
+            icon={Inventory}
+            gradient={['#667eea', '#764ba2']}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Alertas Activas"
             value={estadisticas?.alertasActivas || 0}
-            icon={<Warning sx={{ color: 'warning.main' }} />}
-            color="warning"
+            icon={Warning}
+            gradient={['#f093fb', '#f5576c']}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Próximos a Vencer"
             value={estadisticas?.lotesProximosVencer || 0}
-            icon={<TrendingUp sx={{ color: 'error.main' }} />}
-            color="error"
+            icon={TrendingUp}
+            gradient={['#fa709a', '#fee140']}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Movimientos Hoy"
             value={estadisticas?.movimientosHoy || 0}
-            icon={<Notifications sx={{ color: 'success.main' }} />}
-            color="success"
+            icon={Notifications}
+            gradient={['#30cfd0', '#330867']}
           />
         </Grid>
       </Grid>
 
       {/* Alertas recientes */}
       {alertas.length > 0 && (
-        <Paper sx={{ p: 2, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 3, 
+            mb: 4,
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
             Alertas Recientes
           </Typography>
           {alertas.map((alerta, index) => (
             <Alert
               key={index}
               severity={alerta.nivel === 'error' ? 'error' : 'warning'}
-              sx={{ mb: 1 }}
+              sx={{ 
+                mb: 1, 
+                '&:last-child': { mb: 0 },
+                borderRadius: 2,
+              }}
             >
               {alerta.mensaje}
             </Alert>
@@ -204,33 +227,42 @@ const Dashboard = () => {
       )}
 
       {/* Gráficos */}
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        {/* Gráfico 1: Consumo por Servicio */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📊 Consumo por Servicio (Últimos 30 días)
+      <Grid container spacing={3}>
+        {/* Consumo por Servicio */}
+        <Grid item xs={12} lg={6}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                📊 Consumo por Servicio (30 días)
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={consumoServicio}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="servicio" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${parseFloat(value).toFixed(2)}`} />
-                  <Legend />
-                  <Bar dataKey="total_costo" fill="#8884d8" name="Costo Total" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
+                  <XAxis 
+                    dataKey="servicio" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={100} 
+                    fontSize={11}
+                  />
+                  <YAxis fontSize={11} />
+                  <Tooltip 
+                    formatter={(value) => `$${parseFloat(value).toFixed(2)}`}
+                    contentStyle={{ borderRadius: 8 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Bar dataKey="total_costo" fill="#667eea" name="Costo Total" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Gráfico 2: Stock por Estado */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+        {/* Stock por Estado */}
+        <Grid item xs={12} lg={6}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
                 ⚠️ Estado de Stock
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
@@ -241,7 +273,7 @@ const Dashboard = () => {
                     nameKey="estado"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius={100}
                     label
                   >
                     {stockEstado.map((entry, index) => {
@@ -254,43 +286,64 @@ const Dashboard = () => {
                       return <Cell key={`cell-${index}`} fill={colors[entry.estado] || '#8884d8'} />;
                     })}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={{ borderRadius: 8 }} />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Gráfico 3: Tendencia de Requisiciones */}
+        {/* Tendencia de Requisiciones */}
         <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📈 Tendencia de Requisiciones (Últimos 30 días)
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                📈 Tendencia de Requisiciones (30 días)
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={tendenciaRequisiciones}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fecha" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="entregadas" stroke="#4caf50" name="Entregadas" />
-                  <Line type="monotone" dataKey="aprobadas" stroke="#2196f3" name="Aprobadas" />
-                  <Line type="monotone" dataKey="pendientes" stroke="#ff9800" name="Pendientes" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
+                  <XAxis dataKey="fecha" fontSize={11} />
+                  <YAxis fontSize={11} />
+                  <Tooltip contentStyle={{ borderRadius: 8 }} />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="entregadas" 
+                    stroke="#4caf50" 
+                    name="Entregadas" 
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="aprobadas" 
+                    stroke="#2196f3" 
+                    name="Aprobadas" 
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="pendientes" 
+                    stroke="#ff9800" 
+                    name="Pendientes" 
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Gráfico 4: Próximos a Vencer */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📅 Medicamentos Próximos a Vencer (60 días)
+        {/* Próximos a Vencer */}
+        <Grid item xs={12} lg={6}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                📅 Próximos a Vencer (60 días)
               </Typography>
               <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                 {proximosVencer.length > 0 ? (
@@ -298,38 +351,56 @@ const Dashboard = () => {
                     <Alert 
                       key={index} 
                       severity={item.dias_restantes < 30 ? 'error' : 'warning'}
-                      sx={{ mb: 1 }}
+                      sx={{ 
+                        mb: 1.5, 
+                        '&:last-child': { mb: 0 },
+                        borderRadius: 2,
+                      }}
                     >
-                      <strong>{item.medicamento}</strong> - {item.presentacion}
-                      <br />
-                      Lote: {item.numero_lote} | Vence: {new Date(item.fecha_vencimiento).toLocaleDateString()}
-                      <br />
-                      Stock: {item.cantidad_actual} | Días restantes: {item.dias_restantes}
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {item.medicamento} - {item.presentacion}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        Lote: {item.numero_lote} | Vence: {new Date(item.fecha_vencimiento).toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        Stock: {item.cantidad_actual} | Días restantes: {item.dias_restantes}
+                      </Typography>
                     </Alert>
                   ))
                 ) : (
-                  <Typography color="textSecondary">No hay medicamentos próximos a vencer</Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    No hay medicamentos próximos a vencer
+                  </Typography>
                 )}
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Gráfico 5: Costos por Servicio */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                💰 Costos por Servicio (Últimos 30 días)
+        {/* Costos por Servicio */}
+        <Grid item xs={12} lg={6}>
+          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                💰 Costos por Servicio (30 días)
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={costosServicio} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="servicio" type="category" width={150} />
-                  <Tooltip formatter={(value) => `$${parseFloat(value).toFixed(2)}`} />
-                  <Legend />
-                  <Bar dataKey="costo_total" fill="#82ca9d" name="Costo Total" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
+                  <XAxis type="number" fontSize={11} />
+                  <YAxis dataKey="servicio" type="category" width={150} fontSize={11} />
+                  <Tooltip 
+                    formatter={(value) => `$${parseFloat(value).toFixed(2)}`}
+                    contentStyle={{ borderRadius: 8 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Bar 
+                    dataKey="costo_total" 
+                    fill="#82ca9d" 
+                    name="Costo Total"
+                    radius={[0, 8, 8, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

@@ -1,0 +1,105 @@
+Documento de Requerimientos y Flujo del Sistema de Gestión de Medicamentos
+1. Introducción
+Sistema de gestión de medicamentos para controlar el flujo completo desde el ingreso hasta la distribución final a servicios médicos, con seguimiento de inventario, personal y caducidad.
+2. Flujo Principal de Medicamentos
+2.1 Ingreso de Medicamentos a Bodega
+Registro requerido:
+* Nombre del medicamento
+* Cantidad
+* Número de lote
+* Fecha de vencimiento (por lote)
+* Precio (asociado al lote)
+* Fecha de ingreso
+Nota: el ingreso puede ser como ingreso directo, e ingreso por devoluciones.  Para esto el personal debe llenar un formulario igual al consolidado, pero con titulo Devoluciones, que funcione como ingreso, no como salida (que sume al producto en existencia en bodega)
+2.2 Sistema de Stock de 24 Horas (para esto ya tengo un listado con las cantidades)
+Características:
+* Cantidad fija predefinida por medicamento
+* Reposición diaria desde bodega principal
+* Control de salidas y entradas
+3. Distribución por Turnos
+3.1 Turno de 24 Horas (3:00 pm - 7:00 am)
+Personal: Turnista
+Servicios atendidos: Todos los servicios
+* Emergencia General
+* Emergencia Maternidad
+* Emergencia Pediátrica
+* Observación de Adultos
+* Observación Pediátrico
+Fuente de medicamentos: Exclusivamente stock
+3.2 Turno Diurno (8:00 am - 2:00 pm)
+Personal: Farmacéutico
+Servicios atendidos:
+* Emergencia General
+* Observación de Adultos
+Fuente de medicamentos: Exclusivamente bodega
+4. Procesos de Salida
+4.1 Salidas por Turnista
+Registro requerido:
+* Servicio destino
+* Cantidad por medicamento
+* Nombre del paciente
+* Número de registro
+* Cama (opcional)
+* Fecha de entrega
+4.2 Salidas por Farmacéutico
+Proceso:
+1. Recibe requisiciones de servicios
+2. Solicita medicamentos a bodega
+3. Entrega a servicios correspondientes
+4. Registra destinatario y cantidades
+5. Control y Cuadre de Inventario
+5.1 Cuadre Diario de Stock
+* Horario: 7:00 am (fin turno 24 horas)
+* Participantes: Turnista y Bodeguero
+* Objetivo: Verificar diferencias y programar reposición
+5.2 Reporte Diario de Reposición
+Contenido:
+* Nombre del medicamento
+* Cantidad que debe haber en stock
+* Cantidad que salió
+* Cantidad a reponer (diferencia)
+* Nombre del turnista que entrega
+* Nombre del bodeguero que recibe
+* Fechas de recepción y entrega
+6. Funcionalidades de Reportes Requeridos
+6.1 Reportes de Movimiento
+* Ingreso y salida por día, semana, mes, año
+* Fecha de vencimiento por lote
+* Indicador de medicamentos próximos a vencer
+6.2 Reportes de Costos
+* Costo total de salidas por día, semana, mes, año
+* Costo por medicamento individual por período
+7. Objetivos del Sistema
+1. Seguimiento completo del medicamento desde entrada hasta salida
+2. Control de movimientos internos en área de despacho/stock
+3. Gestión de devoluciones y reingresos
+4. Alerta de caducidad y rotación de inventario
+5. Análisis de consumo por servicio médico
+6. Control de personal que manipula medicamentos
+7. Alertas de inventario mínimo y existencias actuales
+8. Integración Futura
+* Conexión con aplicación React
+* Mantener todas las funcionalidades descritas
+* Interfaz para los diferentes tipos de usuarios (bodeguero, turnista, farmacéutico)
+
+Información de boleta de Consolidado
+Nombre del medicamento
+Cantidad de medicamento
+Dosis o Unidad (opción a seleccionar)
+Número de camas (30)
+Nombre del paciente (un cuadro para ingresar texto, uno para cada cama)
+Numero de registro del paciente (un cuadro para ingresar texto, uno para cada cama)
+Total, de medicamento (un conteo comparativo de cuanto medicamento salió, asociado a que cama se le dio)
+Ejemplo de boleta de consolidado
+
+
+
+También debe haber un formulario de devoluciones de medicamentos (formato similar a consolidado) que debe sumarse a total de bodega
+Este documento organiza el flujo lógico del sistema, desde el ingreso inicial hasta la distribución final, incluyendo todos los controles, reportes y funcionalidades requeridas para una gestión completa de medicamentos.
+
+
+
+
+
+Ejemplo de kardex
+

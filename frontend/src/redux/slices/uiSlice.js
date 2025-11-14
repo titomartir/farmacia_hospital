@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  sidebarOpen: true,
+  sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false', // Abierto por defecto
   loading: false,
   notifications: [],
   alertas: [],
@@ -13,9 +13,11 @@ const uiSlice = createSlice({
   reducers: {
     toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
+      localStorage.setItem('sidebarOpen', state.sidebarOpen);
     },
     setSidebarOpen: (state, action) => {
       state.sidebarOpen = action.payload;
+      localStorage.setItem('sidebarOpen', action.payload);
     },
     setLoading: (state, action) => {
       state.loading = action.payload;

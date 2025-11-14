@@ -13,10 +13,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
-  Avatar,
   Menu,
   MenuItem,
+  Divider,
+  alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -24,7 +25,6 @@ import {
   Inventory,
   LocalShipping,
   Assessment,
-  Settings,
   AccountCircle,
   Logout,
   Inventory2 as Inventory2Icon,
@@ -34,7 +34,7 @@ import {
 import { toggleSidebar } from '../../redux/slices/uiSlice';
 import { logout } from '../../redux/slices/authSlice';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -49,6 +49,7 @@ const menuItems = [
 const Layout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme();
   const { sidebarOpen } = useSelector((state) => state.ui);
   const { usuario } = useSelector((state) => state.auth);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -75,52 +76,93 @@ const Layout = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* AppBar */}
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'white',
+          color: 'text.primary',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
         }}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Sistema de Farmacia
-          </Typography>
-          <IconButton
-            color="inherit"
-            onClick={handleProfileMenuOpen}
-          >
-            <AccountCircle />
-          </IconButton>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Box>
+              <Typography 
+                variant="h6" 
+                noWrap 
+                sx={{ 
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Sistema de Farmacia
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Gestión de Medicamentos
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {usuario?.nombre_usuario}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {usuario?.rol?.nombre_rol}
+              </Typography>
+            </Box>
+            <IconButton
+              onClick={handleProfileMenuOpen}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
+              }}
+            >
+              <AccountCircle sx={{ fontSize: 28 }} />
+            </IconButton>
+          </Box>
+
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleProfileMenuClose}
+            PaperProps={{
+              elevation: 3,
+              sx: { mt: 1.5, minWidth: 200, borderRadius: 2 },
+            }}
           >
-            <MenuItem disabled>
-              <Typography variant="body2">
-                {usuario?.nombre_usuario}
-              </Typography>
+            <MenuItem disabled sx={{ opacity: 1 }}>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {usuario?.nombre_usuario}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {usuario?.rol?.nombre_rol}
+                </Typography>
+              </Box>
             </MenuItem>
-            <MenuItem disabled>
-              <Typography variant="caption">
-                {usuario?.rol?.nombre_rol}
-              </Typography>
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout fontSize="small" />
-              </ListItemIcon>
+            <Divider sx={{ my: 1 }} />
+            <MenuItem onClick={handleLogout} sx={{ color: 'error.main', gap: 1 }}>
+              <Logout fontSize="small" />
               Cerrar Sesión
             </MenuItem>
           </Menu>
@@ -132,22 +174,50 @@ const Layout = () => {
         variant="persistent"
         open={sidebarOpen}
         sx={{
-          width: drawerWidth,
+          width: sidebarOpen ? drawerWidth : 0,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            borderRight: 'none',
+            background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
           },
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
+        <Box sx={{ overflow: 'auto', py: 2, px: 2 }}>
+          <List sx={{ gap: 0.5, display: 'flex', flexDirection: 'column' }}>
             {menuItems.map((item) => (
               <ListItem key={item.text} disablePadding>
-                <ListItemButton onClick={() => handleMenuClick(item.path)}>
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
+                <ListItemButton
+                  onClick={() => handleMenuClick(item.path)}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    py: 1.5,
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.15)',
+                      color: 'white',
+                      transform: 'translateX(4px)',
+                      '& .MuiListItemIcon-root': {
+                        color: 'white',
+                      },
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontWeight: 500,
+                      fontSize: '0.95rem',
+                    }}
+                  />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -155,23 +225,21 @@ const Layout = () => {
         </Box>
       </Drawer>
 
-      {/* Main Content */}
+      {/* Main Content - SIN MARGEN IZQUIERDO */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${sidebarOpen ? drawerWidth : 0}px)` },
-          ml: { sm: sidebarOpen ? `${drawerWidth}px` : 0 },
-          transition: (theme) =>
-            theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
+          width: '100%',
+          minHeight: '100vh',
+          bgcolor: '#f8f9fa',
+          // NO marginLeft aquí
         }}
       >
         <Toolbar />
-        <Outlet />
+        <Box sx={{ p: 3 }}>
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

@@ -1,0 +1,23 @@
+﻿nombre;descripcion;estado
+Ampolla;Envase sellado para inyectables;TRUE
+Blister;Empalaje con tabletas o capsulas;TRUE
+Bolsa;Contenedor flexible para líquidos, polvos o productos a granel.;TRUE
+Capsula;Producto único con cubierta gelatinosa que contiene medicamento en polvo o líquido.;TRUE
+Cubeta;Contenedor plastico para productos liquidos o en polvo;TRUE
+Frasco;Envase de vidrio o plástico para líquidos, polvos o tabletas.;TRUE
+Frasco/gotero;Frasco con aplicador tipo gotero para dosificación precisa de líquidos.;TRUE
+Frasco/Suspensión;Frasco que contiene líquidos con partículas en suspensión que deben agitarse antes de usar.;TRUE
+Galón;Envase grande, generalmente de plástico, para almacenar líquidos en volumen.;TRUE
+Gotas oftalmicas;Solución líquida estéril para aplicación ocular en forma de gotas.;TRUE
+Gotero;Dispositivo para aplicar líquidos en gotas, especialmente en ojos o nariz.;TRUE
+Jeringa Prellenada;Instrumento para inyectar o extraer líquidos, con aguja o sin ella.;TRUE
+LAMI;Unidad especial de medida;TRUE
+Libra;Empaque pesado con cantitdad exacta;TRUE
+Litro;"Unidad de volumen; envase que contiene un litro de líquido.";TRUE
+Perla;Cápsula pequeña, redonda y brillante que contiene medicamento en forma líquida o aceitosa para fácil ingestión;TRUE
+Sobre;Empaque pequeño de papel o aluminio que contiene polvo, gránulos o líquidos.;TRUE
+Supositorio;Forma sólida diseñada para introducirse en el recto, vagina o uretra.;TRUE
+Tableta;Forma sólida comprimida de medicamento, generalmente redonda o ovalada.;TRUE
+Tarro;Envase ancho de vidrio o plástico, usado para cremas, ungüentos o polvos.;TRUE
+Tubo;Enbase cilindrico blando para hacer presion;TRUE
+Vial;Pequeño frasco sellado para líquidos inyectables o muestras.;TRUE
