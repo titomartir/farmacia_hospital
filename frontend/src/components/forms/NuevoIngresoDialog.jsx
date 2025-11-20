@@ -38,7 +38,7 @@ const NuevoIngresoDialog = ({ open, onClose }) => {
   // Estados principales
   const [formData, setFormData] = useState({
     id_proveedor: '',
-    tipo_ingreso: 'INGRESO',
+    tipo_ingreso: 'COMPRA',
     fecha_ingreso: new Date(),
     numero_factura: '',
     observaciones: ''
@@ -234,8 +234,9 @@ const NuevoIngresoDialog = ({ open, onClose }) => {
                   onChange={(e) => handleChange('tipo_ingreso', e.target.value)}
                   label="Tipo de Ingreso"
                 >
-                  <MenuItem value="INGRESO">Ingreso</MenuItem>
-                  <MenuItem value="DEVOLUCION">Devolución</MenuItem>
+                  <MenuItem value="COMPRA">Compra</MenuItem>
+                  <MenuItem value="DONACION">Donación</MenuItem>
+                  <MenuItem value="TRANSFERENCIA">Transferencia</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

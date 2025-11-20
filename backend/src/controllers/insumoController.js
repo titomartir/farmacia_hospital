@@ -433,10 +433,11 @@ const obtenerInventarioTotal = async (req, res) => {
     const inventarioGeneral = await sequelize.query(`
       SELECT 
         ip.id_insumo_presentacion,
-        COALESCE(SUM(li.cantidad_disponible), 0) as stock_general
+        COALESCE(SUM(li.cantidad_actual), 0) as stock_general
       FROM insumo_presentacion ip
       LEFT JOIN lote_inventario li ON ip.id_insumo_presentacion = li.id_insumo_presentacion
-        AND li.estado = 'disponible'
+        AND li.estado = true
+        AND li.cantidad_actual > 0
       GROUP BY ip.id_insumo_presentacion
     `, { type: QueryTypes.SELECT });
 
