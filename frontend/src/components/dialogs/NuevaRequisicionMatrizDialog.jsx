@@ -415,9 +415,11 @@ const NuevaRequisicionMatrizDialog = ({ open, onClose, onSuccess }) => {
 
           <Autocomplete
             options={insumosPresentaciones}
-            getOptionLabel={(option) =>
-              `${option.insumo?.nombre || ''} - ${option.presentacion?.nombre || ''}`
-            }
+            getOptionLabel={(option) => {
+              const nombre = option.insumo?.nombre || 'Sin nombre';
+              const presentacion = option.presentacion?.nombre || 'Sin presentación';
+              return `${nombre} - ${presentacion}`;
+            }}
             onChange={(_, newValue) => handleAgregarMedicamento(newValue)}
             renderInput={(params) => (
               <TextField {...params} label="Agregar medicamento" placeholder="Buscar..." />

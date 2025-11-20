@@ -184,9 +184,11 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
               <Box flex="1" minWidth="200px">
                 <Autocomplete
                   options={insumosPresentacion}
-                  getOptionLabel={(option) => 
-                    `${option.insumo?.nombre_insumo || ''} - ${option.presentacion?.nombre_presentacion || ''}`
-                  }
+                  getOptionLabel={(option) => {
+                    const nombre = option.insumo?.nombre_insumo || 'Sin nombre';
+                    const presentacion = option.presentacion?.nombre_presentacion || 'Sin presentación';
+                    return `${nombre} - ${presentacion}`;
+                  }}
                   value={selectedInsumo}
                   onChange={handleInsumoChange}
                   renderInput={(params) => (
@@ -275,7 +277,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
                   </TableRow>
                 ) : (
                   detalles.map((detalle, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={`${detalle.id_lote}-${index}`}>
                       <TableCell>{detalle.nombre_insumo}</TableCell>
                       <TableCell>{detalle.presentacion}</TableCell>
                       <TableCell>{detalle.numero_lote}</TableCell>
