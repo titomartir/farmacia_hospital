@@ -219,7 +219,7 @@ const Insumos = () => {
       {/* Header */}
       <Box sx={{ mb: 1, mx: 1, mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Gestión de Insumos
+          Gestión de Medicamentos
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
@@ -236,7 +236,7 @@ const Insumos = () => {
             onClick={() => handleOpenDialog()}
             size="small"
           >
-            Nuevo Insumo
+            Nuevo Medicamento
           </Button>
         </Box>
       </Box>
@@ -326,7 +326,6 @@ const Insumos = () => {
         <Table size="small" sx={{ '& .MuiTableCell-root': { py: 0.75 } }}>
           <TableHead>
             <TableRow sx={{ bgcolor: 'grey.50' }}>
-              <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>ID</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Nombre</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Descripción</TableCell>
               <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Clasificación</TableCell>
@@ -338,20 +337,19 @@ const Insumos = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={6} align="center">
                   <CircularProgress />
                 </TableCell>
               </TableRow>
             ) : filteredInsumos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
-                  No se encontraron insumos
+                <TableCell colSpan={6} align="center">
+                  No se encontraron medicamentos
                 </TableCell>
               </TableRow>
             ) : (
               filteredInsumos.map((insumo) => (
                 <TableRow key={insumo.id_insumo}>
-                  <TableCell>{insumo.id_insumo}</TableCell>
                   <TableCell>{insumo.nombre}</TableCell>
                   <TableCell>{insumo.descripcion || '-'}</TableCell>
                   <TableCell>
@@ -411,7 +409,7 @@ const Insumos = () => {
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
           <DialogTitle sx={{ pb: 1 }}>
-            {editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}
+            {editingInsumo ? 'Editar Medicamento' : 'Nuevo Medicamento'}
           </DialogTitle>
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 0.5 }}>

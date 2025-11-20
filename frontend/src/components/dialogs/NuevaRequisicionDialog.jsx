@@ -19,11 +19,17 @@ import {
   Autocomplete,
   Typography,
   Alert,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import requisicionService from '../../services/requisicionService';
 import servicioService from '../../services/servicioService';
 import insumoService from '../../services/insumoService';
+import authService from '../../services/authService';
 
 const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -31,6 +37,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
     fecha_solicitud: new Date().toISOString(),
     prioridad: 'normal',
     observaciones: '',
+    origen_despacho: 'general',
+    numero_cama: '',
+    nombre_paciente: '',
     detalles: [],
   });
 
@@ -38,6 +47,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
   const [insumos, setInsumos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usuarioActual, setUsuarioActual] = useState(null);
 
   // Item actual para agregar
   const [itemActual, setItemActual] = useState({
@@ -50,6 +60,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
     if (open) {
       cargarCatalogos();
       resetForm();
+      // Cargar usuario actual
+      const usuario = authService.getCurrentUser();
+      setUsuarioActual(usuario);
     }
   }, [open]);
 
@@ -72,6 +85,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
       fecha_solicitud: new Date().toISOString(),
       prioridad: 'normal',
       observaciones: '',
+      origen_despacho: 'general',
+      numero_cama: '',
+      nombre_paciente: '',
       detalles: [],
     });
     setItemActual({
@@ -139,6 +155,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
         fecha_solicitud: formData.fecha_solicitud,
         prioridad: formData.prioridad,
         observaciones: formData.observaciones,
+        origen_despacho: formData.origen_despacho,
+        numero_cama: formData.numero_cama || null,
+        nombre_paciente: formData.nombre_paciente || null,
         detalles: formData.detalles.map(d => ({
           id_insumo_presentacion: d.id_insumo_presentacion,
           cantidad_solicitada: d.cantidad_solicitada,
@@ -207,6 +226,54 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
               <MenuItem value="normal">Normal</MenuItem>
               <MenuItem value="baja">Baja</MenuItem>
             </TextField>
+          </Grid>
+
+          {/* Origen de Despacho - Solo visible para turnistas */}
+          {usuarioActual?.es_turnista && (
+            <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Origen de Despacho</FormLabel>
+                <RadioGroup
+                  row
+                  value={formData.origen_despacho}
+                  onChange={(e) => handleChange('origen_despacho', e.target.value)}
+                >
+                  <FormControlLabel 
+                    value="general" 
+                    control={<Radio />} 
+                    label="Inventario General" 
+                  />
+                  <FormControlLabel 
+                    value="stock_24h" 
+                    control={<Radio />} 
+                    label="Stock 24 Horas" 
+                  />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
+          )}
+
+          {/* Información del Paciente */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Número de Cama"
+              value={formData.numero_cama}
+              onChange={(e) => handleChange('numero_cama', e.target.value)}
+              placeholder="Ej: 101, 205A, UCI-3"
+              helperText="Opcional - Número o código de cama del paciente"
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Nombre del Paciente"
+              value={formData.nombre_paciente}
+              onChange={(e) => handleChange('nombre_paciente', e.target.value)}
+              placeholder="Nombre completo del paciente"
+              helperText="Opcional - Nombre del paciente si aplica"
+            />
           </Grid>
 
           <Grid item xs={12}>

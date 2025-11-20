@@ -161,7 +161,6 @@ const Consolidados = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Fecha</TableCell>
               <TableCell>Servicio</TableCell>
               <TableCell>Turno</TableCell>
@@ -174,13 +173,12 @@ const Consolidados = () => {
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 8 }}>Cargando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 8 }}>Cargando...</TableCell></TableRow>
             ) : consolidados.length === 0 ? (
-              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 8 }}><Typography color="text.secondary">No hay consolidados</Typography></TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 8 }}><Typography color="text.secondary">No hay consolidados</Typography></TableCell></TableRow>
             ) : (
               consolidados.map((cons) => (
                 <TableRow key={cons.id_consolidado} hover>
-                  <TableCell><Chip label={`#${cons.id_consolidado}`} size="small" variant="outlined" /></TableCell>
                   <TableCell><Typography variant="body2">{new Date(cons.fecha_consolidado).toLocaleString('es-GT', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography></TableCell>
                   <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{cons.servicio?.nombre_servicio || '-'}</Typography></TableCell>
                   <TableCell><Chip label={cons.turno} size="small" color={cons.turno === 'diurno' ? 'primary' : 'secondary'} /></TableCell>

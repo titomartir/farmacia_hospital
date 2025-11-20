@@ -42,6 +42,21 @@ const Requisicion = sequelize.define('requisicion', {
     type: DataTypes.ENUM('urgente', 'normal', 'baja'),
     defaultValue: 'normal'
   },
+  origen_despacho: {
+    type: DataTypes.ENUM('general', 'stock_24h'),
+    defaultValue: 'general',
+    comment: 'Origen del despacho: general (bodega) o stock_24h (farmacia 24h)'
+  },
+  numero_cama: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    comment: 'Número o código de cama del paciente'
+  },
+  nombre_paciente: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: 'Nombre completo del paciente'
+  },
   observaciones: {
     type: DataTypes.TEXT
   },

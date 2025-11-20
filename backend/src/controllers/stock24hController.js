@@ -147,6 +147,78 @@ const configurarStockFijo = async (req, res) => {
   }
 };
 
+// Agregar nuevo medicamento a stock 24h
+const agregarMedicamentoStock24h = async (req, res) => {
+  try {
+    const { id_insumo_presentacion, cantidad_fija, stock_actual } = req.body;
+
+    if (!id_insumo_presentacion || !cantidad_fija) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe proporcionar id_insumo_presentacion y cantidad_fija'
+      });
+    }
+
+    // Verificar que el insumo no esté ya en stock 24h
+    const existe = await Stock24Horas.findOne({
+      where: { id_insumo_presentacion }
+    });
+
+    if (existe) {
+      return res.status(400).json({
+        success: false,
+        message: 'Este medicamento ya está configurado en stock 24h'
+      });
+    }
+
+    // Verificar que el insumo_presentacion existe
+    const insumoPresentacion = await InsumoPresentacion.findByPk(id_insumo_presentacion);
+    if (!insumoPresentacion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Insumo presentación no encontrado'
+      });
+    }
+
+    // Crear registro en stock 24h
+    const nuevoStock = await Stock24Horas.create({
+      id_insumo_presentacion,
+      cantidad_fija: parseFloat(cantidad_fija),
+      stock_actual: parseFloat(stock_actual) || 0,
+      estado: true
+    });
+
+    logger.info(`Nuevo medicamento agregado a stock 24h: ${id_insumo_presentacion} por usuario ${req.usuario?.id_usuario}`);
+
+    // Obtener datos completos
+    const stockCompleto = await Stock24Horas.findByPk(nuevoStock.id_stock_24h, {
+      include: [
+        {
+          model: InsumoPresentacion,
+          as: 'insumoPresentacion',
+          include: [
+            { model: Insumo, as: 'insumo' },
+            { model: Presentacion, as: 'presentacion' }
+          ]
+        }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Medicamento agregado exitosamente al stock 24h',
+      data: stockCompleto
+    });
+  } catch (error) {
+    logger.error('Error al agregar medicamento a stock 24h:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al agregar medicamento',
+      error: error.message
+    });
+  }
+};
+
 // Obtener alertas de stock bajo/crítico
 const obtenerAlertas = async (req, res) => {
   try {
@@ -435,6 +507,7 @@ const obtenerEstadisticas = async (req, res) => {
 module.exports = {
   listarStock24h,
   configurarStockFijo,
+  agregarMedicamentoStock24h,
   obtenerAlertas,
   crearReposicion,
   listarReposiciones,

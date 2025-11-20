@@ -467,7 +467,9 @@ Desde el detalle del ingreso:
 
 ## 📋 MÓDULO REQUISICIONES
 
-Las requisiciones son solicitudes de medicamentos que hacen los diferentes servicios del hospital a la farmacia.
+Las requisiciones son solicitudes de medicamentos que realizan enfermeras y médicos de los diferentes servicios del hospital a la farmacia.
+
+> 💡 **IMPORTANTE:** Este módulo está diseñado para personal de enfermería y médicos de los servicios, permitiendo solicitar medicamentos para múltiples pacientes de forma organizada.
 
 ### Flujo de una Requisición
 
@@ -476,7 +478,7 @@ Las requisiciones son solicitudes de medicamentos que hacen los diferentes servi
 ```
 
 **Estados posibles:**
-- **Pendiente:** Recién creada, esperando autorización
+- **Pendiente:** Recién creada, esperando autorización de farmacia
 - **Autorizada:** Aprobada por farmacéutico, lista para preparar
 - **Entregada:** Medicamentos entregados al servicio
 - **Rechazada:** No autorizada
@@ -490,10 +492,11 @@ Las requisiciones son solicitudes de medicamentos que hacen los diferentes servi
 **Columnas de la tabla:**
 - **ID:** Número de requisición
 - **Servicio:** Departamento solicitante (Ej: Emergencia, Pediatría)
+- **Paciente:** Número de cama y nombre del paciente
 - **Fecha y Hora Solicitud:** Cuándo se creó
 - **Prioridad:** Normal o Urgente
 - **Estado:** Pendiente, Autorizada, Entregada, etc.
-- **Usuario Solicita:** Quién la creó
+- **Usuario Solicita:** Quién la creó (enfermera/médico)
 - **Total Items:** Cantidad de medicamentos
 - **Acciones:** Ver, Aprobar, Entregar, Anular
 
@@ -523,53 +526,162 @@ Estado: Pendiente
 Fecha: 01/11/2025 a 12/11/2025
 ```
 
-### Crear Nueva Requisición
+### Crear Nueva Requisición (Formato Matriz)
+
+El módulo de requisiciones utiliza un formato de **matriz similar al de consolidados**, diseñado específicamente para que enfermeras y médicos puedan solicitar medicamentos para múltiples pacientes de forma eficiente.
 
 #### Paso 1: Datos Generales
 
 1. Haga clic en **"Nueva Requisición"**
 
-2. Complete el formulario:
+2. Complete el encabezado:
 
    | Campo | Descripción | Ejemplo |
    |-------|-------------|---------|
-   | **Servicio** | Departamento que solicita | Emergencia |
-   | **Fecha y Hora** | Cuándo se solicita | 12/11/2025 09:00 |
-   | **Prioridad** | Normal o Urgente | Urgente |
-   | **Observaciones** | Notas adicionales | Paciente crítico cama 5 |
+   | **Servicio** | Departamento que solicita | Encamamiento General |
+   | **Fecha y Hora** | Cuándo se solicita | 19/11/2025 09:00 |
+   | **Prioridad** | Normal o Urgente | Normal |
+   | **Origen de Despacho** | De dónde se entregarán los medicamentos | General o Stock 24h |
+   | **Observaciones** | Notas adicionales | Requisición turno matutino |
 
 3. **Prioridad:**
    - **Normal:** Entrega en horario regular
    - **Urgente:** Requiere atención inmediata (aparece en rojo)
 
-#### Paso 2: Agregar Medicamentos
+4. **Origen de Despacho:**
+   - **General:** Los medicamentos se entregarán desde el almacén general de farmacia
+   - **Stock 24h:** Solo para personal turnista - se entregarán desde el stock 24 horas del servicio
 
-1. **Haga clic en el botón "+" (Agregar Medicamento)**
+#### Paso 2: Agregar Medicamentos (Columnas)
 
-2. **Busque y seleccione el medicamento**
+Antes de registrar los pacientes, debe definir qué medicamentos van a solicitar:
 
-3. **Ingrese la cantidad solicitada:**
+1. **Use el buscador de medicamentos** en la parte superior
+
+2. **Escriba el nombre del medicamento:**
+   - Ejemplo: "Paracetamol"
+   - Aparecerá una lista de opciones con presentaciones
+
+3. **Seleccione el medicamento con su presentación:**
    ```
-   Medicamento: Paracetamol 500mg Tableta x100
-   Cantidad: 2 (significa 2 frascos de 100 tabletas)
+   Paracetamol 500mg Tableta x100
    ```
 
-4. **Agregue observaciones si es necesario:**
-   ```
-   "Para paciente en cama 3 - tratamiento 5 días"
-   ```
+4. **El medicamento se agrega como una columna** en la tabla matriz
 
-5. **Repita para cada medicamento**
+5. **Repita** para cada medicamento diferente que necesite solicitar
 
-6. **El sistema muestra:**
-   - Total de ítems
-   - Lista completa de medicamentos solicitados
+6. **Puede eliminar medicamentos** haciendo clic en la X de cada chip
 
-#### Paso 3: Enviar Requisición
+**Ejemplo de medicamentos agregados:**
+```
+Columna 1: Paracetamol 500mg Tableta
+Columna 2: Ibuprofeno 400mg Tableta
+Columna 3: Omeprazol 20mg Cápsula
+```
 
-1. **Revise los datos**
-2. **Haga clic en "Guardar"**
-3. **La requisición queda en estado "Pendiente"**
+#### Paso 3: Agregar Pacientes y Cantidades (Filas)
+
+Ahora verá una **tabla tipo matriz** donde:
+- Cada **fila** es un paciente
+- Cada **columna** es un medicamento
+- Cada **celda** es la cantidad solicitada
+
+Para cada paciente:
+
+1. **Haga clic en "+ Agregar Paciente"**
+
+2. **Complete los datos del paciente:**
+
+   | Campo | Descripción | Ejemplo |
+   |-------|-------------|---------|
+   | **Número de Cama** | Cama del paciente | 101, 205A, UCI-3 |
+   | **Nombre del Paciente** | Nombre completo | María López Pérez |
+
+3. **Ingrese las cantidades** en cada celda:
+   - Haga clic en la celda del medicamento
+   - Ingrese la cantidad solicitada
+   - Si no necesita ese medicamento, deje en 0 o vacío
+
+4. **Puede eliminar pacientes** haciendo clic en el icono de papelera
+
+**Ejemplo de matriz completa:**
+
+| Cama | Paciente | Paracetamol | Ibuprofeno | Omeprazol |
+|------|----------|-------------|------------|-----------|
+| 101 | Juan Pérez | 3 | 2 | 0 |
+| 102 | María López | 2 | 0 | 1 |
+| 205A | Carlos Ruiz | 4 | 1 | 1 |
+
+#### Paso 4: Revisar Totales
+
+El sistema calcula automáticamente:
+- **Total por medicamento** (suma de todos los pacientes)
+- **Total general de unidades solicitadas**
+
+Estos totales aparecen en la **última fila de la tabla** para que pueda verificar las cantidades antes de enviar.
+
+**Ejemplo de totales:**
+```
+Paracetamol: 9 unidades (3+2+4)
+Ibuprofeno: 3 unidades (2+0+1)
+Omeprazol: 2 unidades (0+1+1)
+Total general: 14 unidades
+```
+
+#### Paso 5: Guardar Requisición
+
+1. **Revise todos los datos:**
+   - Servicio correcto
+   - Datos de pacientes completos
+   - Cantidades correctas
+   - Origen de despacho seleccionado
+
+2. **Haga clic en "Guardar Requisición"**
+
+**El sistema automáticamente:**
+- Crea **UNA requisición POR CADA paciente** (no una sola)
+- Cada requisición incluye:
+  - Número de cama del paciente
+  - Nombre del paciente
+  - Lista de medicamentos con cantidades
+  - Todos los datos del encabezado
+- Todas quedan en estado "Pendiente"
+- Se notifica a farmacia
+
+**Resultado del ejemplo anterior:**
+```
+Se crearán 3 requisiciones:
+
+REQ-001: Cama 101 - Juan Pérez
+  - Paracetamol: 3
+  - Ibuprofeno: 2
+
+REQ-002: Cama 102 - María López
+  - Paracetamol: 2
+  - Omeprazol: 1
+
+REQ-003: Cama 205A - Carlos Ruiz
+  - Paracetamol: 4
+  - Ibuprofeno: 1
+  - Omeprazol: 1
+```
+
+> 💡 **VENTAJA:** Este formato permite a enfermeras y médicos solicitar medicamentos para todos sus pacientes en una sola operación, ahorrando tiempo y reduciendo errores.
+
+### Ventajas del Formato Matriz
+
+**Para enfermeras y médicos:**
+- ✅ Solicitar para múltiples pacientes a la vez
+- ✅ Vista clara de qué medicamentos necesita cada paciente
+- ✅ Totales calculados automáticamente
+- ✅ Menos tiempo en solicitudes
+
+**Para farmacia:**
+- ✅ Requisiciones organizadas por paciente
+- ✅ Trazabilidad completa (cama + nombre)
+- ✅ Preparación más eficiente
+- ✅ Auditoría por paciente
 
 ### Aprobar una Requisición
 
@@ -627,8 +739,10 @@ Fecha: 01/11/2025 a 12/11/2025
 2. Se mostrará:
    - **Información General:**
      - Servicio solicitante
+     - Datos del paciente (Cama y Nombre)
      - Fechas (solicitud, autorización, entrega)
      - Prioridad
+     - Origen de despacho
      - Estados
    - **Personal Involucrado:**
      - Quién solicitó
@@ -649,6 +763,8 @@ Desde el detalle:
 1. Haga clic en "Imprimir"
 2. Se genera un documento con:
    - Datos completos de la requisición
+   - Información del paciente (cama y nombre)
+   - Lista de medicamentos
    - Firmas de responsables
    - Fecha y hora de impresión
 
@@ -656,7 +772,9 @@ Desde el detalle:
 
 ## 🏥 MÓDULO CONSOLIDADOS
 
-El módulo de Consolidados registra la administración de medicamentos a pacientes internados, organizados por cama.
+El módulo de Consolidados registra la administración de medicamentos a pacientes internados, organizados por cama. Este módulo es usado principalmente por personal de farmacia para llevar control detallado del consumo.
+
+> 📝 **NOTA:** A diferencia del módulo de Requisiciones (usado por enfermeras/médicos para solicitar), el módulo de Consolidados es para registrar lo que realmente se administró a cada paciente durante un turno.
 
 ### ¿Qué es un Consolidado?
 
@@ -1020,14 +1138,29 @@ R: Es válido para donaciones o muestras médicas. El reporte de costos mostrar�
 
 ### Requisiciones
 
+**P: ¿Cuál es la diferencia entre Requisiciones y Consolidados?**  
+R: Las **Requisiciones** son solicitudes de medicamentos que hacen enfermeras/médicos ANTES de administrar (formato matriz para múltiples pacientes). Los **Consolidados** son registros de lo que YA se administró, usados por farmacia para control y facturación.
+
+**P: ¿Por qué el sistema crea una requisición por cada paciente?**  
+R: Aunque uses el formato matriz para agilizar el proceso, cada paciente necesita su propia requisición para trazabilidad, autorización individual y control de stock por paciente.
+
 **P: ¿Puedo modificar una requisición después de crearla?**  
 R: Las requisiciones en estado "Pendiente" pueden ser anuladas y creadas nuevamente. Las que ya fueron autorizadas o entregadas no se pueden modificar.
 
 **P: ¿Qué diferencia hay entre "Urgente" y "Normal"?**  
-R: Es solo visual para priorizar. Las requisiciones urgentes aparecen destacadas en rojo.
+R: Es solo visual para priorizar. Las requisiciones urgentes aparecen destacadas en rojo y deben atenderse primero.
 
 **P: ¿Puedo entregar menos cantidad de la solicitada?**  
 R: Sí, al momento de entregar puede modificar las cantidades según disponibilidad de stock.
+
+**P: ¿Qué pasa si dejo celdas vacías en la matriz?**  
+R: Solo se incluirán en la requisición los medicamentos con cantidad mayor a 0. Las celdas vacías o con 0 se ignoran automáticamente.
+
+**P: ¿Debo llenar "Número de Cama" obligatoriamente?**  
+R: No es obligatorio, pero es altamente recomendado para trazabilidad. Al menos uno de los dos (cama o nombre) debe estar presente.
+
+**P: ¿Cuándo uso "General" vs "Stock 24h" en origen de despacho?**  
+R: **General**: para medicamentos del almacén principal (disponible para todos). **Stock 24h**: solo para personal turnista, medicamentos del stock local del servicio (Emergencia, UCI, etc.).
 
 ### Consolidados
 

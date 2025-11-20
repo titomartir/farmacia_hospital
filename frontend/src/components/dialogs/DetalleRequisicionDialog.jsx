@@ -60,10 +60,32 @@ const DetalleRequisicionDialog = ({ open, requisicion, onClose }) => {
               minute: '2-digit'
             })}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Prioridad:</strong>{' '}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" component="span">
+              <strong>Prioridad:</strong>
+            </Typography>
             <Chip label={requisicion.prioridad} size="small" />
-          </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" component="span">
+              <strong>Origen de Despacho:</strong>
+            </Typography>
+            <Chip 
+              label={requisicion.origen_despacho === 'stock_24h' ? 'Stock 24 Horas' : 'Inventario General'} 
+              size="small" 
+              color={requisicion.origen_despacho === 'stock_24h' ? 'primary' : 'default'}
+            />
+          </Box>
+          {requisicion.numero_cama && (
+            <Typography variant="body2" color="text.secondary">
+              <strong>Cama:</strong> {requisicion.numero_cama}
+            </Typography>
+          )}
+          {requisicion.nombre_paciente && (
+            <Typography variant="body2" color="text.secondary">
+              <strong>Paciente:</strong> {requisicion.nombre_paciente}
+            </Typography>
+          )}
           {requisicion.observaciones && (
             <Typography variant="body2" color="text.secondary">
               <strong>Observaciones:</strong> {requisicion.observaciones}

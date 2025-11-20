@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import requisicionService from '../services/requisicionService';
 import api from '../services/api';
-import NuevaRequisicionDialog from '../components/dialogs/NuevaRequisicionDialog';
+import NuevaRequisicionMatrizDialog from '../components/dialogs/NuevaRequisicionMatrizDialog';
 import AprobarRequisicionDialog from '../components/dialogs/AprobarRequisicionDialog';
 import EntregarRequisicionDialog from '../components/dialogs/EntregarRequisicionDialog';
 import DetalleRequisicionDialog from '../components/dialogs/DetalleRequisicionDialog';
@@ -67,17 +67,47 @@ const Requisiciones = () => {
   };
 
   const handleFiltroChange = (campo, valor) => setFiltros(prev => ({ ...prev, [campo]: valor }));
-  const handleVerDetalle = (requisicion) => {
-    setRequisicionSeleccionada(requisicion);
-    setDialogDetalle(true);
+  
+  const handleVerDetalle = async (requisicion) => {
+    try {
+      setLoading(true);
+      // Cargar la requisición completa con sus detalles
+      const requisicionCompleta = await requisicionService.obtenerRequisicion(requisicion.id_requisicion);
+      setRequisicionSeleccionada(requisicionCompleta);
+      setDialogDetalle(true);
+    } catch (err) {
+      setError('Error al cargar detalle de requisición: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleAprobar = (requisicion) => {
-    setRequisicionSeleccionada(requisicion);
-    setDialogAprobar(true);
+  
+  const handleAprobar = async (requisicion) => {
+    try {
+      setLoading(true);
+      // Cargar la requisición completa con sus detalles para aprobar
+      const requisicionCompleta = await requisicionService.obtenerRequisicion(requisicion.id_requisicion);
+      setRequisicionSeleccionada(requisicionCompleta);
+      setDialogAprobar(true);
+    } catch (err) {
+      setError('Error al cargar requisición: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleEntregar = (requisicion) => {
-    setRequisicionSeleccionada(requisicion);
-    setDialogEntregar(true);
+  
+  const handleEntregar = async (requisicion) => {
+    try {
+      setLoading(true);
+      // Cargar la requisición completa con sus detalles para entregar
+      const requisicionCompleta = await requisicionService.obtenerRequisicion(requisicion.id_requisicion);
+      setRequisicionSeleccionada(requisicionCompleta);
+      setDialogEntregar(true);
+    } catch (err) {
+      setError('Error al cargar requisición: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
   const handleRechazar = async (requisicion) => {
     const motivo = window.prompt('Ingrese el motivo del rechazo:');
@@ -184,7 +214,6 @@ const Requisiciones = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Fecha Solicitud</TableCell>
               <TableCell>Servicio</TableCell>
               <TableCell>Solicitante</TableCell>
@@ -195,13 +224,12 @@ const Requisiciones = () => {
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} align="center" sx={{ py: 8 }}>Cargando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 8 }}>Cargando...</TableCell></TableRow>
             ) : requisiciones.length === 0 ? (
-              <TableRow><TableCell colSpan={7} align="center" sx={{ py: 8 }}><Typography color="text.secondary">No hay requisiciones</Typography></TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 8 }}><Typography color="text.secondary">No hay requisiciones</Typography></TableCell></TableRow>
             ) : (
               requisiciones.map((req) => (
                 <TableRow key={req.id_requisicion} hover>
-                  <TableCell><Chip label={`#${req.id_requisicion}`} size="small" variant="outlined" /></TableCell>
                   <TableCell><Typography variant="body2">{new Date(req.fecha_solicitud).toLocaleString('es-GT', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography></TableCell>
                   <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{req.servicio?.nombre_servicio || '-'}</Typography></TableCell>
                   <TableCell><Typography variant="body2">{req.usuarioSolicita?.personal?.nombres || ''} {req.usuarioSolicita?.personal?.apellidos || ''}</Typography></TableCell>
@@ -226,7 +254,7 @@ const Requisiciones = () => {
         </Table>
       </TableContainer>
 
-      <NuevaRequisicionDialog open={dialogNueva} onClose={() => setDialogNueva(false)} onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }} />
+      <NuevaRequisicionMatrizDialog open={dialogNueva} onClose={() => setDialogNueva(false)} onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }} />
       {requisicionSeleccionada && (
         <>
           <AprobarRequisicionDialog open={dialogAprobar} requisicion={requisicionSeleccionada} onClose={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); }} onSuccess={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); cargarRequisiciones(); }} />

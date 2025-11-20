@@ -8,12 +8,14 @@ import {
   Settings as SettingsIcon, Inventory as InventoryIcon, History as HistoryIcon,
   Warning as WarningIcon, CheckCircle as CheckCircleIcon, Error as ErrorIcon,
   LocalShipping as LocalShippingIcon, Assessment as AssessmentIcon, FilterList as FilterListIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import stock24hService from '../services/stock24hService';
 import ConfigurarStockDialog from '../components/dialogs/ConfigurarStockDialog';
 import NuevaReposicionDialog from '../components/dialogs/NuevaReposicionDialog';
 import CuadreDiarioDialog from '../components/dialogs/CuadreDiarioDialog';
 import HistorialReposicionesDialog from '../components/dialogs/HistorialReposicionesDialog';
+import AgregarMedicamentoStock24hDialog from '../components/dialogs/AgregarMedicamentoStock24hDialog';
 
 const Stock24h = () => {
   const theme = useTheme();
@@ -27,6 +29,7 @@ const Stock24h = () => {
   const [reposicionDialog, setReposicionDialog] = useState(false);
   const [cuadreDialog, setCuadreDialog] = useState(false);
   const [historialDialog, setHistorialDialog] = useState(false);
+  const [agregarDialog, setAgregarDialog] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -111,6 +114,7 @@ const Stock24h = () => {
         <Box display="flex" gap={1}>
           <Button variant="outlined" startIcon={<HistoryIcon />} onClick={() => setHistorialDialog(true)}>Historial</Button>
           <Button variant="outlined" startIcon={<LocalShippingIcon />} onClick={() => setReposicionDialog(true)}>Reposición</Button>
+          <Button variant="outlined" color="success" startIcon={<AddIcon />} onClick={() => setAgregarDialog(true)}>Agregar Medicamento</Button>
           <Button variant="contained" startIcon={<AssessmentIcon />} onClick={() => setCuadreDialog(true)}>Cuadre</Button>
         </Box>
       </Box>
@@ -174,8 +178,8 @@ const Stock24h = () => {
                 const porcentaje = getPorcentajeStock(item.cantidad_actual, item.cantidad_fija);
                 return (
                   <TableRow key={item.id_stock_24h} hover>
-                    <TableCell><Typography variant="body2" fontWeight="medium">{item.insumo_presentacion?.insumo?.nombre_insumo || 'N/A'}</Typography></TableCell>
-                    <TableCell>{item.insumo_presentacion?.presentacion?.nombre_presentacion || 'N/A'}</TableCell>
+                    <TableCell><Typography variant="body2" fontWeight="medium">{item.insumoPresentacion?.insumo?.nombre || 'N/A'}</Typography></TableCell>
+                    <TableCell>{item.insumoPresentacion?.presentacion?.nombre || 'N/A'}</TableCell>
                     <TableCell align="center"><Typography variant="body2" fontWeight="bold">{parseFloat(item.cantidad_actual || 0).toFixed(2)}</Typography></TableCell>
                     <TableCell align="center"><Typography variant="body2">{parseFloat(item.cantidad_fija || 0).toFixed(2)}</Typography></TableCell>
                     <TableCell align="center"><Chip label={`${porcentaje}%`} size="small" color={porcentaje < 30 ? 'error' : porcentaje < 50 ? 'warning' : 'success'} /></TableCell>
@@ -195,6 +199,7 @@ const Stock24h = () => {
       {reposicionDialog && <NuevaReposicionDialog open={reposicionDialog} onClose={handleCloseReposicion} />}
       {cuadreDialog && <CuadreDiarioDialog open={cuadreDialog} onClose={handleCloseCuadre} stockData={stock} />}
       {historialDialog && <HistorialReposicionesDialog open={historialDialog} onClose={() => setHistorialDialog(false)} />}
+      {agregarDialog && <AgregarMedicamentoStock24hDialog open={agregarDialog} onClose={(actualizado) => { setAgregarDialog(false); if (actualizado) cargarDatos(); }} />}
     </Box>
   );
 };

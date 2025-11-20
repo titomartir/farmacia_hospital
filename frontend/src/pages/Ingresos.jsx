@@ -277,7 +277,6 @@ const Ingresos = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
                 <TableCell>Tipo</TableCell>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Proveedor</TableCell>
@@ -290,18 +289,17 @@ const Ingresos = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}><CircularProgress /></TableCell>
+                  <TableCell colSpan={7} align="center" sx={{ py: 8 }}><CircularProgress /></TableCell>
                 </TableRow>
               ) : ingresos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
                     <Typography color="text.secondary">No hay ingresos registrados</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 ingresos.map((ingreso) => (
                   <TableRow key={ingreso.id_ingreso} hover>
-                    <TableCell><Chip label={`#${ingreso.id_ingreso}`} size="small" variant="outlined" /></TableCell>
                     <TableCell><Chip label={ingreso.tipo_ingreso} color={getTipoColor(ingreso.tipo_ingreso)} size="small" /></TableCell>
                     <TableCell><Typography variant="body2">{formatearFecha(ingreso.fecha_ingreso)}</Typography></TableCell>
                     <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{ingreso.proveedor?.nombre || 'N/A'}</Typography></TableCell>

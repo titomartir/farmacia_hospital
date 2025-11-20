@@ -148,7 +148,10 @@ const crearRequisicion = async (req, res) => {
       id_servicio, 
       fecha_solicitud,
       prioridad = 'normal',
-      observaciones, 
+      observaciones,
+      origen_despacho = 'general',
+      numero_cama,
+      nombre_paciente,
       detalles 
     } = req.body;
 
@@ -169,6 +172,9 @@ const crearRequisicion = async (req, res) => {
       fecha_solicitud,
       prioridad,
       observaciones,
+      origen_despacho,
+      numero_cama,
+      nombre_paciente,
       estado: 'pendiente'
     }, { transaction: t });
 
@@ -371,6 +377,44 @@ const entregarRequisicion = async (req, res) => {
             transaction: t 
           }
         );
+
+        // NUEVO: Si la requisición es de stock_24h, descontar automáticamente
+        if (requisicion.origen_despacho === 'stock_24h') {
+          const detalleCompleto = await DetalleRequisicion.findByPk(detalle.id_detalle_requisicion);
+          
+          if (detalleCompleto) {
+            // Descontar del stock 24h
+            const Stock24Horas = require('../models').Stock24Horas;
+            await Stock24Horas.decrement(
+              { stock_actual: detalle.cantidad_entregada },
+              { 
+                where: { id_insumo_presentacion: detalleCompleto.id_insumo_presentacion },
+                transaction: t 
+              }
+            );
+
+            // Registrar movimiento
+            const MovimientoStock24h = require('../models').MovimientoStock24h;
+            const Personal = require('../models').Personal;
+            
+            // Obtener id_personal del usuario
+            const usuario = await Usuario.findByPk(req.usuario.id_usuario, {
+              include: [{ model: Personal, as: 'personal' }]
+            });
+
+            if (usuario && usuario.id_personal) {
+              await MovimientoStock24h.create({
+                id_stock_24h: detalleCompleto.id_insumo_presentacion, // Se necesita obtener el id_stock_24h
+                tipo_movimiento: 'consumo_requisicion',
+                cantidad: detalle.cantidad_entregada,
+                id_personal: usuario.id_personal,
+                observaciones: `Requisición #${id} - ${requisicion.servicio || 'N/A'}`
+              }, { transaction: t });
+            }
+
+            logger.info(`Stock 24h decrementado: ${detalleCompleto.id_insumo_presentacion} cantidad: ${detalle.cantidad_entregada}`);
+          }
+        }
       }
     }
 

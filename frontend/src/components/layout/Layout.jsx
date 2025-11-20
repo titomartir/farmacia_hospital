@@ -30,6 +30,7 @@ import {
   Inventory2 as Inventory2Icon,
   Assignment as AssignmentIcon,
   Description as DescriptionIcon,
+  Warehouse as WarehouseIcon,
 } from '@mui/icons-material';
 import { toggleSidebar } from '../../redux/slices/uiSlice';
 import { logout } from '../../redux/slices/authSlice';
@@ -38,11 +39,12 @@ const drawerWidth = 260;
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Insumos', icon: <Inventory />, path: '/insumos' },
+  { text: 'Medicamentos', icon: <Inventory />, path: '/insumos' },
   { text: 'Ingresos', icon: <LocalShipping />, path: '/ingresos' },
   { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
   { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
   { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+  { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
   { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
 ];
 

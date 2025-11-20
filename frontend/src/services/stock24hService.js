@@ -17,6 +17,11 @@ const stock24hService = {
     return response.data;
   },
 
+  agregarMedicamentoStock24h: async (data) => {
+    const response = await api.post('/stock-24h/agregar', data);
+    return response.data;
+  },
+
   getAlertas: async () => {
     const response = await api.get('/stock-24h/alertas');
     return response.data;

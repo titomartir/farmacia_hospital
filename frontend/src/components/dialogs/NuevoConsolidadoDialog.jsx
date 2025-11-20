@@ -23,6 +23,9 @@ import {
   Divider,
   Alert,
   Chip,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -56,7 +59,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
   const [datosMatriz, setDatosMatriz] = useState(
     Array(30).fill(null).map((_, idx) => ({
       numero_cama: idx + 1,
+      numero_expediente: '',
       nombre_paciente: '',
+      sexo: '',
       medicamentos: {},
     }))
   );
@@ -105,7 +110,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
     setDatosMatriz(
       Array(30).fill(null).map((_, idx) => ({
         numero_cama: idx + 1,
+        numero_expediente: '',
         nombre_paciente: '',
+        sexo: '',
         medicamentos: {},
       }))
     );
@@ -173,6 +180,24 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
     }));
   };
 
+  const handleCambiarExpediente = (numeroCama, expediente) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, numero_expediente: expediente };
+      }
+      return fila;
+    }));
+  };
+
+  const handleCambiarSexo = (numeroCama, sexo) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, sexo: sexo };
+      }
+      return fila;
+    }));
+  };
+
   const calcularTotalPorMedicamento = (idInsumo) => {
     return datosMatriz.reduce((sum, fila) => {
       return sum + (fila.medicamentos[idInsumo] || 0);
@@ -207,9 +232,11 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
             if (cantidad > 0) {
               detalles.push({
                 numero_cama: fila.numero_cama,
+                numero_expediente: fila.numero_expediente || '',
                 nombre_paciente: fila.nombre_paciente,
-                numero_registro: fila.numero_cama.toString(), // Usar número de cama como registro por ahora
-                id_insumo_presentacion: med.id_insumo_presentacion || med.id_insumo, // Usar el ID correcto
+                sexo: fila.sexo || '',
+                numero_registro: fila.numero_expediente || fila.numero_cama.toString(),
+                id_insumo_presentacion: med.id_insumo_presentacion || med.id_insumo,
                 cantidad: parseFloat(cantidad),
                 precio_unitario: med.precio_unitario || 0,
                 observaciones: ''
@@ -366,8 +393,10 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Cama</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>Paciente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 60 }}>Cama</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 120 }}>Expediente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 190 }}>Paciente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 80, textAlign: 'center' }}>Sexo</TableCell>
                   {medicamentosColumnas.map((med) => (
                     <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold', minWidth: 100 }}>
                       {med.nombre || med.nombre_generico}
@@ -378,15 +407,61 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
               <TableBody>
                 {datosMatriz.map((fila) => (
                   <TableRow key={fila.numero_cama}>
-                    <TableCell>{fila.numero_cama}</TableCell>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>{fila.numero_cama}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={fila.numero_expediente}
+                        onChange={(e) => handleCambiarExpediente(fila.numero_cama, e.target.value)}
+                        placeholder="Expediente"
+                        inputProps={{ 
+                          maxLength: 11,
+                          style: { fontSize: '0.8rem' }
+                        }}
+                      />
+                    </TableCell>
                     <TableCell>
                       <TextField
                         fullWidth
                         size="small"
                         value={fila.nombre_paciente}
                         onChange={(e) => handleCambiarNombrePaciente(fila.numero_cama, e.target.value)}
-                        placeholder="Nombre del paciente"
+                        placeholder="Nombre"
                       />
+                    </TableCell>
+                    <TableCell sx={{ px: 0.5 }}>
+                      <RadioGroup
+                        row
+                        value={fila.sexo}
+                        onChange={(e) => handleCambiarSexo(fila.numero_cama, e.target.value)}
+                        sx={{ justifyContent: 'center', gap: 0.5 }}
+                      >
+                        <FormControlLabel 
+                          value="H" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="H" 
+                          sx={{ 
+                            mr: 1, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
+                        <FormControlLabel 
+                          value="M" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="M" 
+                          sx={{ 
+                            mr: 0, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
+                      </RadioGroup>
                     </TableCell>
                     {medicamentosColumnas.map((med) => (
                       <TableCell key={med.id_insumo} align="center">
@@ -405,7 +480,7 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
 
                 {/* Fila de totales */}
                 <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                  <TableCell colSpan={2} sx={{ fontWeight: 'bold' }}>
+                  <TableCell colSpan={4} sx={{ fontWeight: 'bold' }}>
                     TOTALES
                   </TableCell>
                   {medicamentosColumnas.map((med) => (

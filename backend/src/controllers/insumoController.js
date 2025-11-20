@@ -7,7 +7,7 @@ const {
   sequelize 
 } = require('../models');
 const logger = require('../config/logger');
-const { Op } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
 
 // Listar insumos-presentaciones (para selección en formularios)
 const listarInsumosPresentaciones = async (req, res) => {
@@ -424,6 +424,98 @@ const crearInsumoConPresentacion = async (req, res) => {
   }
 };
 
+// Obtener inventario total consolidado (bodega general + stock 24h)
+const obtenerInventarioTotal = async (req, res) => {
+  try {
+    const { buscar = '' } = req.query;
+
+    // Subconsulta para obtener total en bodega general (suma de todos los lotes)
+    const inventarioGeneral = await sequelize.query(`
+      SELECT 
+        ip.id_insumo_presentacion,
+        COALESCE(SUM(li.cantidad_disponible), 0) as stock_general
+      FROM insumo_presentacion ip
+      LEFT JOIN lote_inventario li ON ip.id_insumo_presentacion = li.id_insumo_presentacion
+        AND li.estado = 'disponible'
+      GROUP BY ip.id_insumo_presentacion
+    `, { type: QueryTypes.SELECT });
+
+    // Subconsulta para stock 24h
+    const stock24h = await sequelize.query(`
+      SELECT 
+        id_insumo_presentacion,
+        stock_actual as stock_24h
+      FROM stock_24_horas
+      WHERE estado = true
+    `, { type: QueryTypes.SELECT });
+
+    // Crear mapas para combinar los datos
+    const mapaGeneral = new Map(inventarioGeneral.map(item => [item.id_insumo_presentacion, parseInt(item.stock_general)]));
+    const mapa24h = new Map(stock24h.map(item => [item.id_insumo_presentacion, item.stock_24h]));
+
+    // Obtener todos los insumos-presentaciones con filtro de búsqueda
+    const whereInsumo = buscar ? {
+      [Op.or]: [
+        { nombre: { [Op.iLike]: `%${buscar}%` } },
+        { descripcion: { [Op.iLike]: `%${buscar}%` } }
+      ]
+    } : {};
+
+    const insumosPresentaciones = await InsumoPresentacion.findAll({
+      where: { estado: true },
+      include: [
+        {
+          model: Insumo,
+          as: 'insumo',
+          where: { estado: true, ...whereInsumo },
+          attributes: ['id_insumo', 'nombre', 'descripcion', 'clasificacion', 'subclasificacion']
+        },
+        {
+          model: Presentacion,
+          as: 'presentacion',
+          attributes: ['id_presentacion', 'nombre']
+        },
+        {
+          model: UnidadMedida,
+          as: 'unidadMedida',
+          attributes: ['id_unidad_medida', 'nombre', 'abreviatura']
+        }
+      ],
+      order: [[{ model: Insumo, as: 'insumo' }, 'nombre', 'ASC']]
+    });
+
+    // Combinar datos
+    const inventarioTotal = insumosPresentaciones.map(ip => {
+      const stockGeneral = mapaGeneral.get(ip.id_insumo_presentacion) || 0;
+      const stock24h = mapa24h.get(ip.id_insumo_presentacion) || 0;
+      const stockTotal = stockGeneral + stock24h;
+
+      return {
+        id_insumo_presentacion: ip.id_insumo_presentacion,
+        insumo: ip.insumo,
+        presentacion: ip.presentacion,
+        unidadMedida: ip.unidadMedida,
+        stock_general: stockGeneral,
+        stock_24h: stock24h,
+        stock_total: stockTotal,
+        tiene_stock_24h: stock24h > 0
+      };
+    });
+
+    res.json({
+      success: true,
+      data: inventarioTotal
+    });
+  } catch (error) {
+    logger.error('Error al obtener inventario total:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener inventario total',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   listarInsumos,
   listarInsumosPresentaciones,
@@ -431,6 +523,7 @@ module.exports = {
   crearInsumo,
   actualizarInsumo,
   eliminarInsumo,
-  crearInsumoConPresentacion
+  crearInsumoConPresentacion,
+  obtenerInventarioTotal
 };
 
