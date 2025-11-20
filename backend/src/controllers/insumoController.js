@@ -517,6 +517,43 @@ const obtenerInventarioTotal = async (req, res) => {
   }
 };
 
+// Obtener lotes disponibles para un insumo-presentación
+const obtenerLotesDisponibles = async (req, res) => {
+  try {
+    const { idInsumoPresentacion } = req.params;
+
+    const lotes = await LoteInventario.findAll({
+      where: {
+        id_insumo_presentacion: idInsumoPresentacion,
+        cantidad_actual: {
+          [Op.gt]: 0
+        },
+        estado: true
+      },
+      attributes: [
+        'id_lote',
+        'numero_lote',
+        'fecha_vencimiento',
+        'cantidad_actual',
+        'precio_lote'
+      ],
+      order: [['fecha_vencimiento', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      data: lotes
+    });
+  } catch (error) {
+    logger.error('Error al obtener lotes disponibles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener lotes disponibles',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   listarInsumos,
   listarInsumosPresentaciones,
@@ -525,6 +562,7 @@ module.exports = {
   actualizarInsumo,
   eliminarInsumo,
   crearInsumoConPresentacion,
-  obtenerInventarioTotal
+  obtenerInventarioTotal,
+  obtenerLotesDisponibles
 };
 

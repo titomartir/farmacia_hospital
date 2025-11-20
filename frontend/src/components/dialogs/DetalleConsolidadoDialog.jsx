@@ -115,6 +115,7 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
       matriz[key] = {
         cantidad: parseFloat(det.cantidad) || 0,
         paciente: det.nombre_paciente || '',
+        expediente: det.numero_registro || '',
         costo: parseFloat(det.precio_unitario) || 0,
       };
     });
@@ -148,7 +149,17 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
+    <>
+      <style>
+        {`
+          @media print {
+            .no-print-cost {
+              display: none !important;
+            }
+          }
+        `}
+      </style>
+      <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
@@ -207,7 +218,7 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
                   <Typography variant="body2" color="text.secondary">
                     Turno
                   </Typography>
-                  <Typography variant="body1" gutterBottom>
+                  <Typography variant="body1" component="div" gutterBottom>
                     <Chip
                       label={consolidado.turno}
                       size="small"
@@ -282,6 +293,7 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Cama</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>Paciente</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', minWidth: 150 }}>No. Expediente</TableCell>
                       {medicamentos.map((med) => (
                         <TableCell key={med.id} align="center" sx={{ fontWeight: 'bold', minWidth: 120 }}>
                           {med.nombre}
@@ -294,19 +306,28 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
                   </TableHead>
                   <TableBody>
                     {camas.map((cama) => {
-                      const primerMedicamento = medicamentos[0];
-                      const primerKey = primerMedicamento ? `${cama}-${primerMedicamento.id}` : null;
-                      const nombrePaciente = primerKey && matriz[primerKey] ? matriz[primerKey].paciente : '';
+                      // Buscar el nombre del paciente y expediente en cualquier medicamento de esta cama
+                      let nombrePaciente = '';
+                      let numeroExpediente = '';
+                      for (const med of medicamentos) {
+                        const key = `${cama}-${med.id}`;
+                        if (matriz[key] && matriz[key].paciente) {
+                          nombrePaciente = matriz[key].paciente;
+                          numeroExpediente = matriz[key].expediente;
+                          break;
+                        }
+                      }
 
                       return (
-                        <TableRow key={cama}>
+                        <TableRow key={`cama-${cama}`}>
                           <TableCell>{cama}</TableCell>
                           <TableCell>{nombrePaciente}</TableCell>
+                          <TableCell>{numeroExpediente}</TableCell>
                           {medicamentos.map((med) => {
                             const key = `${cama}-${med.id}`;
                             const dato = matriz[key];
                             return (
-                              <TableCell key={med.id} align="center">
+                              <TableCell key={`${key}-cell`} align="center">
                                 {dato && dato.cantidad ? dato.cantidad.toFixed(1) : '-'}
                               </TableCell>
                             );
@@ -317,11 +338,11 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
 
                     {/* Fila de totales */}
                     <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                      <TableCell colSpan={2} sx={{ fontWeight: 'bold' }}>
+                      <TableCell colSpan={3} sx={{ fontWeight: 'bold' }}>
                         TOTALES
                       </TableCell>
                       {medicamentos.map((med) => (
-                        <TableCell key={med.id} align="center" sx={{ fontWeight: 'bold' }}>
+                        <TableCell key={`total-${med.id}`} align="center" sx={{ fontWeight: 'bold' }}>
                           {calcularTotalMedicamento(med.id).toFixed(1)}
                         </TableCell>
                       ))}
@@ -332,7 +353,11 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
             )}
 
             {/* Resumen de costos */}
-            <Paper elevation={2} sx={{ p: 2, mt: 3, backgroundColor: '#f5f5f5' }}>
+            <Paper 
+              elevation={2} 
+              sx={{ p: 2, mt: 3, backgroundColor: '#f5f5f5' }}
+              className="no-print-cost"
+            >
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
                   <Typography variant="body2" color="text.secondary">
@@ -357,7 +382,7 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
                     Costo total estimado
                   </Typography>
                   <Typography variant="h6" color="primary">
-                    Q{parseFloat(consolidado.costo_total || 0).toFixed(2)}
+                    Q{calcularCostoTotal().toFixed(2)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -382,6 +407,7 @@ const DetalleConsolidadoDialog = ({ open, consolidado, onClose }) => {
         </Button>
       </DialogActions>
     </Dialog>
+    </>
   );
 };
 

@@ -41,7 +41,7 @@ const insumoService = {
   // Lotes
   getLotesDisponibles: async (idInsumoPresentacion) => {
     const response = await api.get(`/insumos/presentaciones/${idInsumoPresentacion}/lotes`);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   getLoteById: async (id) => {

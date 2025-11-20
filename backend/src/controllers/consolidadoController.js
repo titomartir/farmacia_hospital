@@ -25,7 +25,7 @@ const listarConsolidados = async (req, res) => {
       turno,
       encargado,
       id_encargado,
-      estado = 'activo'
+      estado
     } = req.query;
 
     const offset = (page - 1) * limit;

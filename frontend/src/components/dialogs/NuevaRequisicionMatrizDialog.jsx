@@ -420,6 +420,7 @@ const NuevaRequisicionMatrizDialog = ({ open, onClose, onSuccess }) => {
               const presentacion = option.presentacion?.nombre || 'Sin presentación';
               return `${nombre} - ${presentacion}`;
             }}
+            getOptionKey={(option) => option.id_insumo_presentacion}
             onChange={(_, newValue) => handleAgregarMedicamento(newValue)}
             renderInput={(params) => (
               <TextField {...params} label="Agregar medicamento" placeholder="Buscar..." />

@@ -129,9 +129,7 @@ const AgregarMedicamentoStock24hDialog = ({ open, onClose }) => {
                   getOptionLabel={(option) => {
                     const nombre = option.insumo?.nombre || 'Sin nombre';
                     const presentacion = option.presentacion?.nombre || 'Sin presentación';
-                    const nombreFinal = nombre || 'Sin nombre';
-                    const presentacionFinal = presentacion || 'Sin presentación';
-                    return `${nombreFinal} - ${presentacionFinal}`;
+                    return `${nombre} - ${presentacion}`;
                   }}
                   value={selectedInsumo}
                   onChange={(event, newValue) => setSelectedInsumo(newValue)}

@@ -50,6 +50,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
   const cargarInsumosPresentacion = async () => {
     try {
       const response = await insumoService.getInsumosPresentaciones();
+      console.log('Insumos presentaciones cargados:', response);
       setInsumosPresentacion(response || []);
     } catch (err) {
       console.error('Error al cargar insumos:', err);
@@ -61,7 +62,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
     try {
       // Llamar al endpoint de lotes disponibles para ese insumo
       const response = await insumoService.getLotesDisponibles(idInsumoPresentacion);
-      setLotesDisponibles(response.data || []);
+      setLotesDisponibles(response || []);
     } catch (err) {
       console.error('Error al cargar lotes:', err);
       setLotesDisponibles([]);
@@ -69,6 +70,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
   };
 
   const handleInsumoChange = (event, value) => {
+    console.log('Insumo seleccionado:', value);
     setSelectedInsumo(value);
     setSelectedLote(null);
     setLotesDisponibles([]);
@@ -95,7 +97,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
       id_insumo_presentacion: selectedInsumo.id_insumo_presentacion,
       id_lote: selectedLote.id_lote,
       cantidad: parseFloat(cantidad),
-      precio_unitario: parseFloat(selectedLote.precio_unitario || 0),
+      precio_unitario: parseFloat(selectedLote.precio_lote || 0),
       // Datos para mostrar en la tabla
       nombre_insumo: selectedInsumo.insumo?.nombre_insumo || 'N/A',
       presentacion: selectedInsumo.presentacion?.nombre_presentacion || 'N/A',
@@ -103,6 +105,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
       fecha_vencimiento: selectedLote.fecha_vencimiento
     };
 
+    console.log('Nuevo detalle creado:', nuevoDetalle);
     setDetalles([...detalles, nuevoDetalle]);
     
     // Limpiar campos
@@ -189,6 +192,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
                     const presentacion = option.presentacion?.nombre_presentacion || 'Sin presentación';
                     return `${nombre} - ${presentacion}`;
                   }}
+                  getOptionKey={(option) => option.id_insumo_presentacion}
                   value={selectedInsumo}
                   onChange={handleInsumoChange}
                   renderInput={(params) => (
@@ -208,7 +212,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
                 <Autocomplete
                   options={lotesDisponibles}
                   getOptionLabel={(option) => 
-                    `Lote: ${option.numero_lote} (Stock: ${option.stock_actual || 0})`
+                    `Lote: ${option.numero_lote} (Stock: ${option.cantidad_actual || 0})`
                   }
                   value={selectedLote}
                   onChange={(e, value) => setSelectedLote(value)}

@@ -24,6 +24,7 @@ router.use(verificarToken);
 // Rutas
 router.get('/', insumoController.listarInsumos);
 router.get('/presentaciones/lista', insumoController.listarInsumosPresentaciones);
+router.get('/presentaciones/:idInsumoPresentacion/lotes', insumoController.obtenerLotesDisponibles);
 router.get('/inventario/total', insumoController.obtenerInventarioTotal);
 router.get('/:id', insumoController.obtenerInsumoPorId);
 router.post('/', validacionInsumo, validarResultados, insumoController.crearInsumo);
