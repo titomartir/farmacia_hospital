@@ -182,7 +182,7 @@ const crearIngreso = async (req, res) => {
   
   try {
     const {
-      tipo_ingreso, // 'COMPRA' o 'DEVOLUCION'
+      tipo_ingreso, // 'COMPRA', 'DONACION', 'TRANSFERENCIA' o 'DEVOLUCION'
       id_proveedor,
       numero_factura,
       fecha_ingreso,

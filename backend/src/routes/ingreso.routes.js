@@ -9,7 +9,7 @@ const { validarResultados } = require('../middleware/validate.middleware');
 const validacionIngreso = [
   body('tipo_ingreso')
     .notEmpty().withMessage('El tipo de ingreso es requerido')
-    .isIn(['COMPRA', 'DEVOLUCION']).withMessage('Tipo de ingreso inválido'),
+    .isIn(['COMPRA', 'DONACION', 'TRANSFERENCIA', 'DEVOLUCION']).withMessage('Tipo de ingreso inválido'),
   body('id_proveedor')
     .if(body('tipo_ingreso').equals('COMPRA'))
     .notEmpty().withMessage('El proveedor es obligatorio para una compra'),

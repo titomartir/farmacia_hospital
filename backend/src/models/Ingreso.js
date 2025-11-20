@@ -27,7 +27,7 @@ const Ingreso = sequelize.define('ingreso', {
     type: DataTypes.STRING(20),
     defaultValue: 'COMPRA',
     validate: {
-      isIn: [['COMPRA', 'DEVOLUCION']]
+      isIn: [['COMPRA', 'DONACION', 'TRANSFERENCIA', 'DEVOLUCION']]
     }
   },
   subtotal: {
