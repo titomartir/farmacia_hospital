@@ -49,8 +49,8 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
 
   const cargarInsumosPresentacion = async () => {
     try {
-      const response = await insumoService.getInsumosPresentacion();
-      setInsumosPresentacion(response.data || []);
+      const response = await insumoService.getInsumosPresentaciones();
+      setInsumosPresentacion(response || []);
     } catch (err) {
       console.error('Error al cargar insumos:', err);
       setError('Error al cargar la lista de medicamentos');
