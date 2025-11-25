@@ -14,8 +14,8 @@ const Reportes = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tabActual, setTabActual] = useState(0);
-  const [fechaDesde, setFechaDesde] = useState(new Date().toISOString().split('T')[0]);
-  const [fechaHasta, setFechaHasta] = useState(new Date().toISOString().split('T')[0]);
+  const [fechaDesde, setFechaDesde] = useState(new Date().toISOString().slice(0, 16));
+  const [fechaHasta, setFechaHasta] = useState(new Date().toISOString().slice(0, 16));
   const [servicios, setServicios] = useState([]);
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
   const [resumenTotal, setResumenTotal] = useState(null);
@@ -113,10 +113,24 @@ const Reportes = () => {
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>Filtros Globales</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
-              <TextField fullWidth type="date" label="Desde" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} InputLabelProps={{ shrink: true }} />
+              <TextField 
+                fullWidth 
+                type="datetime-local" 
+                label="Desde" 
+                value={fechaDesde} 
+                onChange={(e) => setFechaDesde(e.target.value)} 
+                InputLabelProps={{ shrink: true }} 
+              />
             </Grid>
             <Grid item xs={12} md={3}>
-              <TextField fullWidth type="date" label="Hasta" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} InputLabelProps={{ shrink: true }} />
+              <TextField 
+                fullWidth 
+                type="datetime-local" 
+                label="Hasta" 
+                value={fechaHasta} 
+                onChange={(e) => setFechaHasta(e.target.value)} 
+                InputLabelProps={{ shrink: true }} 
+              />
             </Grid>
           </Grid>
         </CardContent>

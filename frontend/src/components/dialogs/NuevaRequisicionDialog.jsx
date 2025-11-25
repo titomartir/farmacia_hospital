@@ -8,74 +8,92 @@ import {
   TextField,
   MenuItem,
   Grid,
+  Box,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Autocomplete,
   Typography,
+  Stack,
+  Divider,
   Alert,
-  FormControl,
-  FormLabel,
+  Chip,
+  Radio,
   RadioGroup,
   FormControlLabel,
-  Radio,
 } from '@mui/material';
-import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
-import requisicionService from '../../services/requisicionService';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+} from '@mui/icons-material';
 import servicioService from '../../services/servicioService';
 import insumoService from '../../services/insumoService';
-import authService from '../../services/authService';
+import requisicionService from '../../services/requisicionService';
+import { authService } from '../../services/authService';
 
 const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    id_servicio: '',
-    fecha_solicitud: new Date().toISOString(),
-    prioridad: 'normal',
-    observaciones: '',
-    origen_despacho: 'general',
-    numero_cama: '',
-    nombre_paciente: '',
-    detalles: [],
-  });
-
   const [servicios, setServicios] = useState([]);
   const [insumos, setInsumos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [usuarioActual, setUsuarioActual] = useState(null);
 
-  // Item actual para agregar
-  const [itemActual, setItemActual] = useState({
-    insumo: null,
-    cantidad_solicitada: '',
+  // Encabezado de la requisición
+  const [formData, setFormData] = useState({
+    id_servicio: '',
+    fecha_solicitud: new Date().toISOString(),
+    turno: 'diurno',
+    encargado: authService.getCurrentUser()?.nombre_usuario || '',
     observaciones: '',
   });
 
+  // Medicamentos seleccionados (columnas)
+  const [medicamentosColumnas, setMedicamentosColumnas] = useState([]);
+
+  // Matriz de datos: 30 camas × medicamentos
+  const [datosMatriz, setDatosMatriz] = useState(
+    Array(30).fill(null).map((_, idx) => ({
+      numero_cama: idx + 1,
+      numero_expediente: '',
+      nombre_paciente: '',
+      sexo: '',
+      medicamentos: {},
+    }))
+  );
+
   useEffect(() => {
     if (open) {
-      cargarCatalogos();
+      cargarServicios();
+      cargarInsumos();
       resetForm();
-      // Cargar usuario actual
-      const usuario = authService.getCurrentUser();
-      setUsuarioActual(usuario);
     }
   }, [open]);
 
-  const cargarCatalogos = async () => {
+  const cargarServicios = async () => {
     try {
-      const [servData, insData] = await Promise.all([
-        servicioService.listarServicios(),
-        insumoService.getInsumosPresentaciones(),
-      ]);
-      setServicios(servData);
-      setInsumos(insData);
+      const data = await servicioService.listarServicios();
+      setServicios(data);
     } catch (err) {
-      setError('Error al cargar catálogos');
+      console.error('Error al cargar servicios:', err);
+    }
+  };
+
+  const cargarInsumos = async () => {
+    try {
+      const data = await insumoService.getInsumos({ activo: true });
+      console.log('Insumos cargados:', data);
+      // Verificar la estructura de la respuesta
+      const insumosArray = data.data || data;
+      setInsumos(Array.isArray(insumosArray) ? insumosArray : []);
+    } catch (err) {
+      console.error('Error al cargar insumos:', err);
+      setInsumos([]);
+      setError('Error al cargar medicamentos');
     }
   };
 
@@ -83,320 +101,410 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
     setFormData({
       id_servicio: '',
       fecha_solicitud: new Date().toISOString(),
-      prioridad: 'normal',
-      observaciones: '',
-      origen_despacho: 'general',
-      numero_cama: '',
-      nombre_paciente: '',
-      detalles: [],
-    });
-    setItemActual({
-      insumo: null,
-      cantidad_solicitada: '',
+      turno: 'diurno',
+      encargado: authService.getCurrentUser()?.nombre_usuario || '',
       observaciones: '',
     });
+    setMedicamentosColumnas([]);
+    setDatosMatriz(
+      Array(30).fill(null).map((_, idx) => ({
+        numero_cama: idx + 1,
+        numero_expediente: '',
+        nombre_paciente: '',
+        sexo: '',
+        medicamentos: {},
+      }))
+    );
     setError('');
   };
 
-  const handleChange = (campo, valor) => {
-    setFormData(prev => ({ ...prev, [campo]: valor }));
-  };
-
-  const handleAgregarItem = () => {
-    if (!itemActual.insumo || !itemActual.cantidad_solicitada) {
-      setError('Seleccione un medicamento y cantidad');
+  const handleAgregarMedicamento = (insumo) => {
+    if (!insumo) return;
+    if (medicamentosColumnas.find(m => m.id_insumo === insumo.id_insumo)) {
+      setError('Este medicamento ya está agregado');
       return;
     }
 
-    const nuevoDetalle = {
-      id_insumo_presentacion: itemActual.insumo.id_insumo_presentacion,
-      insumo: itemActual.insumo,
-      cantidad_solicitada: parseInt(itemActual.cantidad_solicitada),
-      observaciones: itemActual.observaciones,
-    };
+    // Obtener la primera presentación disponible
+    const presentacion = insumo.presentaciones && insumo.presentaciones.length > 0 
+      ? insumo.presentaciones[0] 
+      : null;
+    
+    if (!presentacion) {
+      setError('Este medicamento no tiene presentaciones disponibles');
+      return;
+    }
 
-    setFormData(prev => ({
-      ...prev,
-      detalles: [...prev.detalles, nuevoDetalle],
-    }));
-
-    setItemActual({
-      insumo: null,
-      cantidad_solicitada: '',
-      observaciones: '',
-    });
+    // Agregar insumo con datos de presentación
+    setMedicamentosColumnas([...medicamentosColumnas, {
+      ...insumo,
+      id_insumo_presentacion: presentacion.id_insumo_presentacion,
+      precio_unitario: presentacion.precio_unitario || 0
+    }]);
     setError('');
   };
 
-  const handleEliminarItem = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      detalles: prev.detalles.filter((_, i) => i !== index),
+  const handleEliminarMedicamento = (id_insumo) => {
+    setMedicamentosColumnas(medicamentosColumnas.filter(m => m.id_insumo !== id_insumo));
+    
+    // Limpiar datos de ese medicamento en la matriz
+    setDatosMatriz(datosMatriz.map(fila => {
+      const nuevosMedicamentos = { ...fila.medicamentos };
+      delete nuevosMedicamentos[id_insumo];
+      return { ...fila, medicamentos: nuevosMedicamentos };
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleCambiarCantidad = (numeroCama, idInsumo, cantidad) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return {
+          ...fila,
+          medicamentos: {
+            ...fila.medicamentos,
+            [idInsumo]: parseFloat(cantidad) || 0,
+          },
+        };
+      }
+      return fila;
+    }));
+  };
+
+  const handleCambiarNombrePaciente = (numeroCama, nombre) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, nombre_paciente: nombre };
+      }
+      return fila;
+    }));
+  };
+
+  const handleCambiarExpediente = (numeroCama, expediente) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, numero_expediente: expediente };
+      }
+      return fila;
+    }));
+  };
+
+  const handleCambiarSexo = (numeroCama, sexo) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, sexo: sexo };
+      }
+      return fila;
+    }));
+  };
+
+  const calcularTotalPorMedicamento = (idInsumo) => {
+    return datosMatriz.reduce((sum, fila) => {
+      return sum + (fila.medicamentos[idInsumo] || 0);
+    }, 0);
+  };
+
+  const handleGuardar = async () => {
     try {
-      if (!formData.id_servicio) {
-        setError('Seleccione un servicio');
-        return;
-      }
-
-      if (formData.detalles.length === 0) {
-        setError('Agregue al menos un medicamento');
-        return;
-      }
-
       setLoading(true);
       setError('');
 
-      const payload = {
-        id_servicio: formData.id_servicio,
-        fecha_solicitud: formData.fecha_solicitud,
-        prioridad: formData.prioridad,
-        observaciones: formData.observaciones,
-        origen_despacho: formData.origen_despacho,
-        numero_cama: formData.numero_cama || null,
-        nombre_paciente: formData.nombre_paciente || null,
-        detalles: formData.detalles.map(d => ({
-          id_insumo_presentacion: d.id_insumo_presentacion,
-          cantidad_solicitada: d.cantidad_solicitada,
-          observaciones: d.observaciones,
-        })),
+      // Validaciones
+      if (!formData.id_servicio) {
+        setError('Debe seleccionar un servicio');
+        return;
+      }
+      if (!formData.encargado.trim()) {
+        setError('Debe ingresar el nombre del encargado');
+        return;
+      }
+      if (medicamentosColumnas.length === 0) {
+        setError('Debe agregar al menos un medicamento');
+        return;
+      }
+
+      // Construir detalles para el backend
+      const detalles = [];
+      datosMatriz.forEach(fila => {
+        if (fila.nombre_paciente.trim()) {
+          medicamentosColumnas.forEach(med => {
+            const cantidad = fila.medicamentos[med.id_insumo] || 0;
+            if (cantidad > 0) {
+              detalles.push({
+                id_insumo_presentacion: med.id_insumo_presentacion || med.id_insumo,
+                cantidad_solicitada: parseFloat(cantidad),
+                numero_cama: fila.numero_cama,
+                numero_expediente: fila.numero_expediente || '',
+                nombre_paciente: fila.nombre_paciente,
+                sexo: fila.sexo || '',
+                observaciones: ''
+              });
+            }
+          });
+        }
+      });
+
+      if (detalles.length === 0) {
+        setError('Debe ingresar al menos un medicamento solicitado');
+        return;
+      }
+
+      console.log('Detalles a enviar:', detalles);
+
+      const requestData = {
+        ...formData,
+        detalles,
       };
 
-      await requisicionService.crearRequisicion(payload);
+      await requisicionService.crearRequisicion(requestData);
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al crear requisición');
+      setError(err.message || 'Error al crear requisición');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Nueva Requisición</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
+      <DialogTitle>Nueva Requisición de Medicamentos</DialogTitle>
       <DialogContent>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
             {error}
           </Alert>
         )}
 
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              select
-              fullWidth
-              label="Servicio"
-              value={formData.id_servicio}
-              onChange={(e) => handleChange('id_servicio', e.target.value)}
-              required
-            >
-              {servicios.map((serv) => (
-                <MenuItem key={serv.id_servicio} value={serv.id_servicio}>
-                  {serv.nombre_servicio}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type="datetime-local"
-              label="Fecha y Hora de Solicitud"
-              value={formData.fecha_solicitud ? formData.fecha_solicitud.slice(0, 16) : ''}
-              onChange={(e) => handleChange('fecha_solicitud', new Date(e.target.value).toISOString())}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              select
-              fullWidth
-              label="Prioridad"
-              value={formData.prioridad}
-              onChange={(e) => handleChange('prioridad', e.target.value)}
-            >
-              <MenuItem value="urgente">Urgente</MenuItem>
-              <MenuItem value="alta">Alta</MenuItem>
-              <MenuItem value="normal">Normal</MenuItem>
-              <MenuItem value="baja">Baja</MenuItem>
-            </TextField>
-          </Grid>
-
-          {/* Origen de Despacho - Solo visible para turnistas */}
-          {usuarioActual?.es_turnista && (
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <FormLabel component="legend">Origen de Despacho</FormLabel>
-                <RadioGroup
-                  row
-                  value={formData.origen_despacho}
-                  onChange={(e) => handleChange('origen_despacho', e.target.value)}
-                >
-                  <FormControlLabel 
-                    value="general" 
-                    control={<Radio />} 
-                    label="Inventario General" 
-                  />
-                  <FormControlLabel 
-                    value="stock_24h" 
-                    control={<Radio />} 
-                    label="Stock 24 Horas" 
-                  />
-                </RadioGroup>
-              </FormControl>
+        {/* Encabezado */}
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={3}>
+              <TextField
+                select
+                fullWidth
+                label="Servicio"
+                value={formData.id_servicio}
+                onChange={(e) => setFormData({ ...formData, id_servicio: e.target.value })}
+                required
+              >
+                {servicios.map((serv) => (
+                  <MenuItem key={serv.id_servicio} value={serv.id_servicio}>
+                    {serv.nombre_servicio}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
-          )}
 
-          {/* Información del Paciente */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Número de Cama"
-              value={formData.numero_cama}
-              onChange={(e) => handleChange('numero_cama', e.target.value)}
-              placeholder="Ej: 101, 205A, UCI-3"
-              helperText="Opcional - Número o código de cama del paciente"
-            />
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                type="datetime-local"
+                label="Fecha y Hora"
+                value={formData.fecha_solicitud ? formData.fecha_solicitud.slice(0, 16) : ''}
+                onChange={(e) => setFormData({ ...formData, fecha_solicitud: new Date(e.target.value).toISOString() })}
+                InputLabelProps={{ shrink: true }}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <TextField
+                select
+                fullWidth
+                label="Turno"
+                value={formData.turno}
+                onChange={(e) => setFormData({ ...formData, turno: e.target.value })}
+                required
+              >
+                <MenuItem value="diurno">Diurno</MenuItem>
+                <MenuItem value="nocturno">Nocturno (24h)</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                label="Encargado"
+                value={formData.encargado}
+                onChange={(e) => setFormData({ ...formData, encargado: e.target.value })}
+                placeholder="Nombre del encargado"
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                label="Observaciones"
+                value={formData.observaciones}
+                onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+              />
+            </Grid>
           </Grid>
+        </Paper>
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Nombre del Paciente"
-              value={formData.nombre_paciente}
-              onChange={(e) => handleChange('nombre_paciente', e.target.value)}
-              placeholder="Nombre completo del paciente"
-              helperText="Opcional - Nombre del paciente si aplica"
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
-              label="Observaciones"
-              value={formData.observaciones}
-              onChange={(e) => handleChange('observaciones', e.target.value)}
-            />
-          </Grid>
-
-          {/* Sección para agregar items */}
-          <Grid item xs={12}>
-            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-              Medicamentos
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
+        {/* Selector de medicamentos */}
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Medicamentos a Administrar
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Autocomplete
               options={insumos}
               getOptionLabel={(option) => {
-                const nombreInsumo = option.insumo?.nombre || option.insumo?.nombre_generico || 'Sin nombre';
-                const presentacion = option.presentacion?.nombre || option.presentacion?.nombre_presentacion || '';
-                return `${nombreInsumo}${presentacion ? ' - ' + presentacion : ''}`;
+                const nombre = option.nombre || option.nombre_generico || 'Sin nombre';
+                return nombre;
               }}
-              value={itemActual.insumo}
-              onChange={(_, newValue) =>
-                setItemActual(prev => ({ ...prev, insumo: newValue }))
-              }
+              onChange={(e, value) => handleAgregarMedicamento(value)}
               renderInput={(params) => (
-                <TextField {...params} label="Buscar medicamento..." />
+                <TextField {...params} label="Buscar medicamento..." placeholder="Escriba para buscar" />
               )}
-              isOptionEqualToValue={(option, value) => 
-                option.id_insumo_presentacion === value?.id_insumo_presentacion
-              }
-              noOptionsText="No se encontraron medicamentos"
+              isOptionEqualToValue={(option, value) => option.id_insumo === value?.id_insumo}
+              noOptionsText={insumos.length === 0 ? "No hay medicamentos disponibles" : "No se encontraron resultados"}
+              sx={{ flex: 1 }}
             />
-          </Grid>
+          </Stack>
 
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Cantidad"
-              value={itemActual.cantidad_solicitada}
-              onChange={(e) =>
-                setItemActual(prev => ({
-                  ...prev,
-                  cantidad_solicitada: e.target.value,
-                }))
-              }
-              inputProps={{ min: 1 }}
-            />
-          </Grid>
+          <Box sx={{ mt: 2 }}>
+            {medicamentosColumnas.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                Agregue los medicamentos que se van a administrar
+              </Typography>
+            ) : (
+              medicamentosColumnas.map((med) => (
+                <Chip
+                  key={med.id_insumo}
+                  label={med.nombre || med.nombre_generico}
+                  onDelete={() => handleEliminarMedicamento(med.id_insumo)}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mr: 1, mb: 1 }}
+                />
+              ))
+            )}
+          </Box>
+        </Paper>
 
-          <Grid item xs={12} md={3}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={handleAgregarItem}
-              sx={{ height: '56px' }}
-            >
-              Agregar
-            </Button>
-          </Grid>
-
-          {/* Tabla de items agregados */}
-          {formData.detalles.length > 0 && (
-            <Grid item xs={12}>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Medicamento</TableCell>
-                      <TableCell>Presentación</TableCell>
-                      <TableCell align="right">Cantidad</TableCell>
-                      <TableCell align="center">Acciones</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {formData.detalles.map((detalle, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {detalle.insumo?.insumo?.nombre || detalle.insumo?.insumo?.nombre_generico || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {detalle.insumo?.presentacion?.nombre || detalle.insumo?.presentacion?.nombre_presentacion || '-'}
-                        </TableCell>
-                        <TableCell align="right">
-                          {detalle.cantidad_solicitada}
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleEliminarItem(index)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
+        {/* Matriz de administración */}
+        {medicamentosColumnas.length > 0 && (
+          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold', width: 60 }}>Cama</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 120 }}>Expediente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 190 }}>Paciente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 80, textAlign: 'center' }}>Sexo</TableCell>
+                  {medicamentosColumnas.map((med) => (
+                    <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold', minWidth: 100 }}>
+                      {med.nombre || med.nombre_generico}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {datosMatriz.map((fila) => (
+                  <TableRow key={fila.numero_cama}>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>{fila.numero_cama}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={fila.numero_expediente}
+                        onChange={(e) => handleCambiarExpediente(fila.numero_cama, e.target.value)}
+                        placeholder="Expediente"
+                        inputProps={{ 
+                          maxLength: 11,
+                          style: { fontSize: '0.8rem' }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={fila.nombre_paciente}
+                        onChange={(e) => handleCambiarNombrePaciente(fila.numero_cama, e.target.value)}
+                        placeholder="Nombre"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ px: 0.5 }}>
+                      <RadioGroup
+                        row
+                        value={fila.sexo}
+                        onChange={(e) => handleCambiarSexo(fila.numero_cama, e.target.value)}
+                        sx={{ justifyContent: 'center', gap: 0.5 }}
+                      >
+                        <FormControlLabel 
+                          value="H" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="H" 
+                          sx={{ 
+                            mr: 1, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
+                        <FormControlLabel 
+                          value="M" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="M" 
+                          sx={{ 
+                            mr: 0, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
+                      </RadioGroup>
+                    </TableCell>
+                    {medicamentosColumnas.map((med) => (
+                      <TableCell key={med.id_insumo} align="center">
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={fila.medicamentos[med.id_insumo] || ''}
+                          onChange={(e) => handleCambiarCantidad(fila.numero_cama, med.id_insumo, e.target.value)}
+                          inputProps={{ min: 0, step: 0.5, style: { textAlign: 'center' } }}
+                          sx={{ width: 80 }}
+                        />
+                      </TableCell>
                     ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          )}
-        </Grid>
+                  </TableRow>
+                ))}
+
+                {/* Fila de totales */}
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell colSpan={4} sx={{ fontWeight: 'bold' }}>
+                    TOTALES
+                  </TableCell>
+                  {medicamentosColumnas.map((med) => (
+                    <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold' }}>
+                      {calcularTotalPorMedicamento(med.id_insumo).toFixed(1)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
           Cancelar
         </Button>
         <Button
-          onClick={handleSubmit}
           variant="contained"
-          disabled={loading || formData.detalles.length === 0}
+          onClick={handleGuardar}
+          disabled={loading}
+          startIcon={<SaveIcon />}
         >
-          {loading ? 'Guardando...' : 'Crear Requisición'}
+          {loading ? 'Guardando...' : 'Guardar Requisición'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -35,12 +35,14 @@ const Insumo = sequelize.define('insumo', {
     type: DataTypes.ENUM('vih', 'metodo_anticonceptivo', 'listado_basico'),
     defaultValue: 'listado_basico',
     allowNull: false,
-    comment: 'Clasificación principal del medicamento'
+    comment: 'Clasificación principal del medicamento',
+    field: 'clasificacion'
   },
   subclasificacion: {
     type: DataTypes.ENUM('requisicion', 'receta'),
     allowNull: true,
-    comment: 'Subclasificación del medicamento'
+    comment: 'Subclasificación del medicamento',
+    field: 'subclasificacion'
   },
   estado: {
     type: DataTypes.BOOLEAN,

@@ -184,6 +184,10 @@ const crearRequisicion = async (req, res) => {
         id_requisicion: nuevaRequisicion.id_requisicion,
         id_insumo_presentacion: detalle.id_insumo_presentacion,
         cantidad_solicitada: detalle.cantidad_solicitada,
+        numero_cama: detalle.numero_cama,
+        numero_expediente: detalle.numero_expediente,
+        nombre_paciente: detalle.nombre_paciente,
+        sexo: detalle.sexo,
         observaciones: detalle.observaciones
       }, { transaction: t });
     }

@@ -151,9 +151,13 @@ const DetalleRequisicionDialog = ({ open, requisicion, onClose }) => {
         </Typography>
 
         <TableContainer component={Paper} variant="outlined">
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell>Cama</TableCell>
+                <TableCell>Expediente</TableCell>
+                <TableCell>Paciente</TableCell>
+                <TableCell>Sexo</TableCell>
                 <TableCell>Medicamento</TableCell>
                 <TableCell>Presentación</TableCell>
                 <TableCell align="right">Solicitado</TableCell>
@@ -172,12 +176,15 @@ const DetalleRequisicionDialog = ({ open, requisicion, onClose }) => {
             <TableBody>
               {requisicion.detalles?.map((detalle, index) => (
                 <TableRow key={index}>
+                  <TableCell>{detalle.numero_cama || '-'}</TableCell>
+                  <TableCell>{detalle.numero_expediente || '-'}</TableCell>
+                  <TableCell>{detalle.nombre_paciente || '-'}</TableCell>
+                  <TableCell align="center">{detalle.sexo || '-'}</TableCell>
                   <TableCell>
-                    {detalle.insumoPresentacion?.insumo?.nombre_generico || '-'}
+                    {detalle.insumoPresentacion?.insumo?.nombre || '-'}
                   </TableCell>
                   <TableCell>
-                    {detalle.insumoPresentacion?.presentacion
-                      ?.nombre_presentacion || '-'}
+                    {detalle.insumoPresentacion?.presentacion?.nombre || '-'}
                   </TableCell>
                   <TableCell align="right">
                     {detalle.cantidad_solicitada}
@@ -193,13 +200,13 @@ const DetalleRequisicionDialog = ({ open, requisicion, onClose }) => {
                         {detalle.cantidad_entregada || 0}
                       </TableCell>
                       <TableCell align="right">
-                        Q{(detalle.precio_unitario || 0).toFixed(2)}
+                        Q{parseFloat(detalle.precio_unitario || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         Q
                         {(
-                          (detalle.cantidad_entregada || 0) *
-                          (detalle.precio_unitario || 0)
+                          parseFloat(detalle.cantidad_entregada || 0) *
+                          parseFloat(detalle.precio_unitario || 0)
                         ).toFixed(2)}
                       </TableCell>
                     </>
@@ -218,7 +225,7 @@ const DetalleRequisicionDialog = ({ open, requisicion, onClose }) => {
                 ?.reduce(
                   (sum, d) =>
                     sum +
-                    (d.cantidad_entregada || 0) * (d.precio_unitario || 0),
+                    parseFloat(d.cantidad_entregada || 0) * parseFloat(d.precio_unitario || 0),
                   0
                 )
                 .toFixed(2)}

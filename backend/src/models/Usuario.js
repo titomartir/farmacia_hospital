@@ -30,11 +30,6 @@ const Usuario = sequelize.define('usuario', {
     type: DataTypes.ENUM('24_horas', 'diurno', 'nocturno', 'administrativo'),
     allowNull: true
   },
-  es_turnista: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    comment: 'Indica si el usuario es personal de turno 24h'
-  },
   estado: {
     type: DataTypes.BOOLEAN,
     defaultValue: true

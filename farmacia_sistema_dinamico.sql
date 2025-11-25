@@ -77,6 +77,18 @@ CREATE TYPE tipo_documento_enum AS ENUM (
     'REQUISICIÓN'
 );
 
+-- Tipos para clasificación de medicamentos
+CREATE TYPE clasificacion_medicamento AS ENUM (
+    'vih',
+    'metodo_anticonceptivo',
+    'listado_basico'
+);
+
+CREATE TYPE subclasificacion_medicamento AS ENUM (
+    'requisicion',
+    'receta'
+);
+
 -- ============================================================================
 -- TABLAS CATÁLOGO (Precargar datos básicos)
 -- ============================================================================
@@ -118,6 +130,8 @@ CREATE TABLE insumo (
     dias_alerta_vencimiento INTEGER DEFAULT 30,
     requiere_stock_24h BOOLEAN DEFAULT FALSE,
     tipo_documento tipo_documento_enum DEFAULT 'RECETA',
+    clasificacion clasificacion_medicamento DEFAULT 'listado_basico',
+    subclasificacion subclasificacion_medicamento,
     estado BOOLEAN DEFAULT TRUE,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -128,6 +142,8 @@ COMMENT ON TABLE insumo IS 'Tabla de medicamentos/insumos - Se registran al mome
 COMMENT ON COLUMN insumo.nombre IS 'Nombre del medicamento (ej: Acetaminofén (Paracetamol))';
 COMMENT ON COLUMN insumo.requiere_stock_24h IS 'Indica si el medicamento debe estar en el stock de 24 horas';
 COMMENT ON COLUMN insumo.tipo_documento IS 'Tipo de documento requerido para dispensar: RECETA o REQUISICIÓN';
+COMMENT ON COLUMN insumo.clasificacion IS 'Clasificación principal: vih, metodo_anticonceptivo, listado_basico';
+COMMENT ON COLUMN insumo.subclasificacion IS 'Para reportes: requisicion o receta';
 
 -- Tabla: insumo_presentacion
 CREATE TABLE insumo_presentacion (
@@ -367,6 +383,10 @@ CREATE TABLE detalle_requisicion (
     cantidad_autorizada NUMERIC(10,2) DEFAULT 0 CHECK (cantidad_autorizada >= 0),
     cantidad_entregada NUMERIC(10,2) DEFAULT 0 CHECK (cantidad_entregada >= 0),
     precio_unitario NUMERIC(10,2) DEFAULT 0,
+    numero_cama INTEGER,
+    numero_expediente VARCHAR(20),
+    nombre_paciente VARCHAR(150),
+    sexo CHAR(1) CHECK (sexo IN ('M', 'H')),
     observaciones TEXT
 );
 

@@ -38,9 +38,8 @@ const AprobarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) => 
       
       const detallesIniciales = data.detalles.map((d) => ({
         id_detalle_requisicion: d.id_detalle_requisicion,
-        insumo: d.insumoPresentacion?.insumo?.nombre_generico || '-',
-        presentacion:
-          d.insumoPresentacion?.presentacion?.nombre_presentacion || '-',
+        insumo: d.insumoPresentacion?.insumo?.nombre || '-',
+        presentacion: d.insumoPresentacion?.presentacion?.nombre || '-',
         cantidad_solicitada: d.cantidad_solicitada,
         cantidad_autorizada: d.cantidad_solicitada, // Por defecto, autorizar lo solicitado
       }));

@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import requisicionService from '../services/requisicionService';
 import api from '../services/api';
-import NuevaRequisicionMatrizDialog from '../components/dialogs/NuevaRequisicionMatrizDialog';
+import NuevaRequisicionDialog from '../components/dialogs/NuevaRequisicionDialog';
 import AprobarRequisicionDialog from '../components/dialogs/AprobarRequisicionDialog';
 import EntregarRequisicionDialog from '../components/dialogs/EntregarRequisicionDialog';
 import DetalleRequisicionDialog from '../components/dialogs/DetalleRequisicionDialog';
@@ -254,7 +254,7 @@ const Requisiciones = () => {
         </Table>
       </TableContainer>
 
-      <NuevaRequisicionMatrizDialog open={dialogNueva} onClose={() => setDialogNueva(false)} onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }} />
+      <NuevaRequisicionDialog open={dialogNueva} onClose={() => setDialogNueva(false)} onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }} />
       {requisicionSeleccionada && (
         <>
           <AprobarRequisicionDialog open={dialogAprobar} requisicion={requisicionSeleccionada} onClose={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); }} onSuccess={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); cargarRequisiciones(); }} />

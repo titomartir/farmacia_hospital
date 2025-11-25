@@ -24,22 +24,22 @@ const resumenTotalMedicamentos = async (req, res) => {
     }
 
     // Query para obtener resumen de requisiciones y recetas por medicamento
-    // Se diferencia por el campo subclasificacion del insumo
+    // Se diferencia por el campo subclasificacion del insumo (NULL = requisicion por defecto)
     const query = `
       SELECT 
         i.id_insumo,
         i.nombre as medicamento,
         i.clasificacion,
-        i.subclasificacion,
+        COALESCE(i.subclasificacion, 'requisicion') as subclasificacion,
         p.nombre as presentacion,
         
-        -- REQUISICIONES (cuando subclasificacion = 'requisicion')
-        SUM(CASE WHEN i.subclasificacion = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
-        SUM(CASE WHEN i.subclasificacion = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
+        -- REQUISICIONES (cuando subclasificacion = 'requisicion' o es NULL)
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
         
         -- RECETAS (cuando subclasificacion = 'receta')
-        SUM(CASE WHEN i.subclasificacion = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
-        SUM(CASE WHEN i.subclasificacion = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
         
         -- TOTALES
         SUM(dr.cantidad_autorizada) as total_unidades,
@@ -125,23 +125,23 @@ const resumenPorServicio = async (req, res) => {
       });
     }
 
-    // Query similar pero con filtro de servicio y subclasificacion
+    // Query similar pero con filtro de servicio y subclasificacion (NULL = requisicion por defecto)
     const query = `
       SELECT 
         i.id_insumo,
         i.nombre as medicamento,
         i.clasificacion,
-        i.subclasificacion,
+        COALESCE(i.subclasificacion, 'requisicion') as subclasificacion,
         p.nombre as presentacion,
         s.nombre_servicio as servicio,
         
-        -- REQUISICIONES (cuando subclasificacion = 'requisicion')
-        SUM(CASE WHEN i.subclasificacion = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
-        SUM(CASE WHEN i.subclasificacion = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
+        -- REQUISICIONES (cuando subclasificacion = 'requisicion' o es NULL)
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
         
         -- RECETAS (cuando subclasificacion = 'receta')
-        SUM(CASE WHEN i.subclasificacion = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
-        SUM(CASE WHEN i.subclasificacion = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
         
         -- TOTALES
         SUM(dr.cantidad_autorizada) as total_unidades,
