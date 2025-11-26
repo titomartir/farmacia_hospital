@@ -38,6 +38,14 @@ const consolidadoService = {
     const response = await api.post(`/consolidados/${id}/anular`, { motivo });
     return response.data.data;
   },
+
+  // Entregar consolidado
+  async entregarConsolidado(id, detallesEntregados) {
+    const response = await api.post(`/consolidados/${id}/entregar`, {
+      detalles_entregados: detallesEntregados,
+    });
+    return response.data.data;
+  },
 };
 
 export default consolidadoService;

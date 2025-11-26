@@ -18,36 +18,35 @@ import {
   Box,
   MenuItem,
 } from '@mui/material';
-import requisicionService from '../../services/requisicionService';
+import consolidadoService from '../../services/consolidadoService';
 import ingresoService from '../../services/ingresoService';
 
-const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) => {
+const EntregarConsolidadoDialog = ({ open, consolidado, onClose, onSuccess }) => {
   const [detalles, setDetalles] = useState([]);
   const [lotes, setLotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open && requisicion) {
+    if (open && consolidado) {
       cargarDetalles();
       cargarLotes();
     }
-  }, [open, requisicion]);
+  }, [open, consolidado]);
 
   const cargarDetalles = async () => {
     try {
-      const data = await requisicionService.obtenerRequisicion(
-        requisicion.id_requisicion
+      const data = await consolidadoService.obtenerConsolidado(
+        consolidado.id_consolidado
       );
       
       const detallesIniciales = data.detalles.map((d) => ({
-        id_detalle_requisicion: d.id_detalle_requisicion,
+        id_detalle_consolidado: d.id_detalle_consolidado,
         id_insumo_presentacion: d.id_insumo_presentacion,
-        insumo: d.insumoPresentacion?.insumo?.nombre_generico || '-',
-        presentacion:
-          d.insumoPresentacion?.presentacion?.nombre_presentacion || '-',
-        cantidad_autorizada: d.cantidad_autorizada || 0,
-        cantidad_entregada: d.cantidad_autorizada || 0,
+        insumo: d.insumoPresentacion?.insumo?.nombre || '-',
+        presentacion: d.insumoPresentacion?.presentacion?.nombre || '-',
+        cantidad_solicitada: d.cantidad || 0,
+        cantidad_entregada: d.cantidad || 0,
         id_lote: '',
         precio_unitario: 0,
       }));
@@ -94,20 +93,20 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
       setError('');
 
       const detallesEntregados = detalles.map((d) => ({
-        id_detalle_requisicion: d.id_detalle_requisicion,
+        id_detalle_consolidado: d.id_detalle_consolidado,
         cantidad_entregada: parseInt(d.cantidad_entregada),
         id_lote: d.id_lote || null,
         precio_unitario: parseFloat(d.precio_unitario) || 0,
       }));
 
-      await requisicionService.entregarRequisicion(
-        requisicion.id_requisicion,
+      await consolidadoService.entregarConsolidado(
+        consolidado.id_consolidado,
         detallesEntregados
       );
       
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al entregar requisición');
+      setError(err.response?.data?.message || 'Error al entregar consolidado');
     } finally {
       setLoading(false);
     }
@@ -116,7 +115,7 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
-        Entregar Requisición #{requisicion?.id_requisicion}
+        Entregar Consolidado #{consolidado?.id_consolidado}
       </DialogTitle>
       <DialogContent>
         {error && (
@@ -127,12 +126,15 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
 
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            <strong>Servicio:</strong> {requisicion?.servicio?.nombre_servicio}
+            <strong>Servicio:</strong> {consolidado?.servicio?.nombre_servicio}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            <strong>Solicitante:</strong>{' '}
-            {requisicion?.usuarioSolicita?.personal?.nombres}{' '}
-            {requisicion?.usuarioSolicita?.personal?.apellidos}
+            <strong>Turno:</strong> {consolidado?.turno}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Encargado:</strong>{' '}
+            {consolidado?.usuario?.personal?.nombres}{' '}
+            {consolidado?.usuario?.personal?.apellidos}
           </Typography>
         </Box>
 
@@ -146,7 +148,7 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
               <TableRow>
                 <TableCell>Medicamento</TableCell>
                 <TableCell>Presentación</TableCell>
-                <TableCell align="right">Autorizado</TableCell>
+                <TableCell align="right">Solicitado</TableCell>
                 <TableCell align="right">Entregar</TableCell>
                 <TableCell>Lote</TableCell>
                 <TableCell align="right">Precio Unit.</TableCell>
@@ -158,7 +160,7 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
                   <TableCell>{detalle.insumo}</TableCell>
                   <TableCell>{detalle.presentacion}</TableCell>
                   <TableCell align="right">
-                    {detalle.cantidad_autorizada}
+                    {detalle.cantidad_solicitada}
                   </TableCell>
                   <TableCell align="right">
                     <TextField
@@ -174,7 +176,7 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
                       }
                       inputProps={{
                         min: 0,
-                        max: detalle.cantidad_autorizada,
+                        max: detalle.cantidad_solicitada,
                       }}
                       sx={{ width: 100 }}
                     />
@@ -230,11 +232,11 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
           Cancelar
         </Button>
         <Button onClick={handleSubmit} variant="contained" disabled={loading}>
-          {loading ? 'Entregando...' : 'Entregar Requisición'}
+          {loading ? 'Entregando...' : 'Entregar Consolidado'}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default EntregarRequisicionDialog;
+export default EntregarConsolidadoDialog;

@@ -7,13 +7,14 @@ import {
 import {
   Add as AddIcon, Visibility as VisibilityIcon, CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon, Refresh as RefreshIcon, Description as DescriptionIcon,
-  Print as PrintIcon, FilterList as FilterListIcon,
+  Print as PrintIcon, FilterList as FilterListIcon, LocalShipping as LocalShippingIcon,
 } from '@mui/icons-material';
 import consolidadoService from '../services/consolidadoService';
 import servicioService from '../services/servicioService';
 import api from '../services/api';
 import NuevoConsolidadoDialog from '../components/dialogs/NuevoConsolidadoDialog';
 import DetalleConsolidadoDialog from '../components/dialogs/DetalleConsolidadoDialog';
+import EntregarConsolidadoDialog from '../components/dialogs/EntregarConsolidadoDialog';
 
 const Consolidados = () => {
   const [consolidados, setConsolidados] = useState([]);
@@ -26,6 +27,7 @@ const Consolidados = () => {
   });
   const [dialogNuevo, setDialogNuevo] = useState(false);
   const [dialogDetalle, setDialogDetalle] = useState(false);
+  const [dialogEntregar, setDialogEntregar] = useState(false);
   const [consolidadoSeleccionado, setConsolidadoSeleccionado] = useState(null);
 
   useEffect(() => {
@@ -74,6 +76,10 @@ const Consolidados = () => {
   const handleVerDetalle = (consolidado) => {
     setConsolidadoSeleccionado(consolidado);
     setDialogDetalle(true);
+  };
+  const handleEntregar = (consolidado) => {
+    setConsolidadoSeleccionado(consolidado);
+    setDialogEntregar(true);
   };
   const handleCerrar = async (consolidado) => {
     if (!window.confirm('¿Está seguro de cerrar este consolidado?')) return;
@@ -190,6 +196,7 @@ const Consolidados = () => {
                     <Tooltip title="Ver detalles"><IconButton size="small" onClick={() => handleVerDetalle(cons)}><VisibilityIcon /></IconButton></Tooltip>
                     {cons.estado === 'activo' && (
                       <>
+                        <Tooltip title="Entregar"><IconButton size="small" color="primary" onClick={() => handleEntregar(cons)}><LocalShippingIcon /></IconButton></Tooltip>
                         <Tooltip title="Cerrar"><IconButton size="small" color="success" onClick={() => handleCerrar(cons)}><CheckCircleIcon /></IconButton></Tooltip>
                         <Tooltip title="Anular"><IconButton size="small" color="error" onClick={() => handleAnular(cons)}><CancelIcon /></IconButton></Tooltip>
                       </>
@@ -205,7 +212,10 @@ const Consolidados = () => {
 
       <NuevoConsolidadoDialog open={dialogNuevo} onClose={() => setDialogNuevo(false)} onSuccess={() => { setDialogNuevo(false); cargarConsolidados(); }} />
       {consolidadoSeleccionado && (
-        <DetalleConsolidadoDialog open={dialogDetalle} consolidado={consolidadoSeleccionado} onClose={() => { setDialogDetalle(false); setConsolidadoSeleccionado(null); }} />
+        <>
+          <DetalleConsolidadoDialog open={dialogDetalle} consolidado={consolidadoSeleccionado} onClose={() => { setDialogDetalle(false); setConsolidadoSeleccionado(null); }} />
+          <EntregarConsolidadoDialog open={dialogEntregar} consolidado={consolidadoSeleccionado} onClose={() => { setDialogEntregar(false); setConsolidadoSeleccionado(null); }} onSuccess={() => { setDialogEntregar(false); setConsolidadoSeleccionado(null); cargarConsolidados(); }} />
+        </>
       )}
     </Box>
   );

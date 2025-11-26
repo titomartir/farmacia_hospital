@@ -356,10 +356,109 @@ const anularConsolidado = async (req, res) => {
   }
 };
 
+// Entregar consolidado
+const entregarConsolidado = async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { detalles_entregados } = req.body;
+
+    const consolidado = await Consolidado.findByPk(id, { transaction: t });
+
+    if (!consolidado) {
+      await t.rollback();
+      return res.status(404).json({
+        success: false,
+        message: 'Consolidado no encontrado'
+      });
+    }
+
+    if (consolidado.estado !== 'activo') {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'El consolidado no está activo'
+      });
+    }
+
+    // Actualizar cantidades entregadas en detalles
+    if (detalles_entregados && detalles_entregados.length > 0) {
+      for (const detalle of detalles_entregados) {
+        await DetalleConsolidado.update(
+          { 
+            cantidad_entregada: detalle.cantidad_entregada,
+            id_lote: detalle.id_lote,
+            precio_unitario: detalle.precio_unitario || 0
+          },
+          { 
+            where: { id_detalle_consolidado: detalle.id_detalle_consolidado },
+            transaction: t 
+          }
+        );
+      }
+    }
+
+    // Actualizar estado del consolidado a cerrado
+    await consolidado.update({
+      estado: 'cerrado',
+      fecha_cierre: new Date()
+    }, { transaction: t });
+
+    await t.commit();
+
+    logger.info(`Consolidado entregado: ${id} por usuario ${req.usuario.id_usuario}`);
+
+    const consolidadoActualizado = await Consolidado.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'usuario',
+          include: [{ model: Personal, as: 'personal' }]
+        },
+        { model: Servicio, as: 'servicio' },
+        {
+          model: DetalleConsolidado,
+          as: 'detalles',
+          include: [
+            {
+              model: InsumoPresentacion,
+              as: 'insumoPresentacion',
+              include: [
+                { model: Insumo, as: 'insumo' },
+                { model: Presentacion, as: 'presentacion' }
+              ]
+            },
+            {
+              model: LoteInventario,
+              as: 'lote'
+            }
+          ]
+        }
+      ]
+    });
+
+    res.json({
+      success: true,
+      message: 'Consolidado entregado correctamente',
+      data: consolidadoActualizado
+    });
+  } catch (error) {
+    await t.rollback();
+    logger.error('Error al entregar consolidado:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al entregar consolidado',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   listarConsolidados,
   obtenerConsolidadoPorId,
   crearConsolidado,
   cerrarConsolidado,
-  anularConsolidado
+  anularConsolidado,
+  entregarConsolidado
 };

@@ -18,6 +18,9 @@ router.post('/', consolidadoController.crearConsolidado);
 // POST /api/consolidados/:id/cerrar - Cerrar consolidado
 router.post('/:id/cerrar', consolidadoController.cerrarConsolidado);
 
+// POST /api/consolidados/:id/entregar - Entregar consolidado
+router.post('/:id/entregar', consolidadoController.entregarConsolidado);
+
 // POST /api/consolidados/:id/anular - Anular consolidado
 router.post('/:id/anular', consolidadoController.anularConsolidado);
 
