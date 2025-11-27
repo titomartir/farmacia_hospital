@@ -5,41 +5,44 @@ import {
   CardContent,
   Typography,
   Box,
-  Paper,
+  Container,
+  CircularProgress,
   Alert,
+  Chip,
   alpha,
   useTheme,
 } from '@mui/material';
 import {
-  Inventory,
-  Warning,
+  Receipt,
+  LocalHospital,
   TrendingUp,
-  Notifications,
+  AttachMoney,
 } from '@mui/icons-material';
+
 import {
+  ResponsiveContainer,
   BarChart,
-  Bar,
-  LineChart,
-  Line,
   PieChart,
-  Pie,
-  Cell,
+  LineChart,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
+  Cell,
+  Bar,
+  Pie,
+  Line
 } from 'recharts';
 import api from '../services/api';
 
 const Dashboard = () => {
   const theme = useTheme();
   const [estadisticas, setEstadisticas] = useState(null);
-  const [alertas, setAlertas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
+  // Estados para las gráficas
   const [consumoServicio, setConsumoServicio] = useState([]);
   const [stockEstado, setStockEstado] = useState([]);
   const [tendenciaRequisiciones, setTendenciaRequisiciones] = useState([]);
@@ -48,24 +51,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     cargarDatos();
-    const interval = setInterval(cargarDatos, 300000);
+    // Auto-refresh cada 30 segundos para tiempo real
+    const interval = setInterval(() => {
+      cargarDatos();
+    }, 30000); // 30 segundos
     return () => clearInterval(interval);
   }, []);
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
+      // Obtener métricas principales y datos de gráficas en paralelo
       const [
-        statsRes,
-        alertasRes,
+        tiempoRealRes,
         consumoRes,
         stockRes,
         tendenciaRes,
         vencerRes,
-        costosRes,
+        costosRes
       ] = await Promise.all([
-        api.get('/dashboard/estadisticas'),
-        api.get('/dashboard/alertas?limit=5'),
+        api.get('/dashboard/tiempo-real'),
         api.get('/dashboard/graficos/consumo-servicio'),
         api.get('/dashboard/graficos/stock-estado'),
         api.get('/dashboard/graficos/tendencia-requisiciones'),
@@ -73,341 +78,463 @@ const Dashboard = () => {
         api.get('/dashboard/graficos/costos-servicio'),
       ]);
 
-      if (statsRes.data.success) setEstadisticas(statsRes.data.data);
-      if (alertasRes.data.success) setAlertas(alertasRes.data.data);
+      if (tiempoRealRes.data.success) {
+        setEstadisticas(tiempoRealRes.data.data);
+        setUltimaActualizacion(new Date());
+        setError('');
+      }
       if (consumoRes.data.success) setConsumoServicio(consumoRes.data.data);
       if (stockRes.data.success) setStockEstado(stockRes.data.data);
       if (tendenciaRes.data.success) setTendenciaRequisiciones(tendenciaRes.data.data);
       if (vencerRes.data.success) setProximosVencer(vencerRes.data.data);
       if (costosRes.data.success) setCostosServicio(costosRes.data.data);
     } catch (err) {
+      console.error('Error al cargar datos del dashboard:', err);
       setError('Error al cargar los datos del dashboard');
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, gradient }) => (
-    <Card 
-      elevation={0}
-      sx={{
-        background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
-        color: 'white',
-        height: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: -50,
-          right: -50,
-          width: 150,
-          height: 150,
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '50%',
-        }
-      }}
-    >
-      <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="body2" sx={{ opacity: 0.9, mb: 1, fontWeight: 500 }}>
-              {title}
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-              {value}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 3,
-              p: 1.5,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon sx={{ fontSize: 32 }} />
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+  const formatearMoneda = (valor) => {
+    return new Intl.NumberFormat('es-GT', {
+      style: 'currency',
+      currency: 'GTQ',
+      minimumFractionDigits: 2
+    }).format(valor || 0);
+  };
 
-  if (loading) {
+  const formatearNumero = (valor) => {
+    return new Intl.NumberFormat('es-GT', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(valor || 0);
+  };
+
+  const obtenerHoraFormato = () => {
+    const ahora = new Date();
+    return ahora.toLocaleTimeString('es-GT', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const StatCard = ({ title, value, icon: Icon, gradient, tipo }) => {
+    const esMoneda = tipo === 'costo';
+    const valorFormateado = esMoneda ? formatearMoneda(value) : formatearNumero(value);
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography>Cargando...</Typography>
-      </Box>
+      <Card 
+        elevation={0}
+        sx={{
+          background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
+          color: 'white',
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: theme.shadows[10],
+          },
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 150,
+            height: 150,
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '50%',
+          }
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.9, 
+                  mb: 0.5,
+                  fontWeight: 500,
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {title}
+              </Typography>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
+                  lineHeight: 1.2
+                }}
+              >
+                {valorFormateado}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 2,
+                p: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon sx={{ fontSize: 32 }} />
+            </Box>
+          </Box>
+
+          {/* Indicador de actualización en tiempo real */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: '#4ade80',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    opacity: 1,
+                  },
+                  '50%': {
+                    opacity: 0.5,
+                  },
+                },
+              }}
+            />
+            <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '0.7rem' }}>
+              Tiempo Real
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (loading && !estadisticas) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress size={60} />
+        </Box>
+      </Container>
     );
   }
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
-
   return (
-    <Box>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-          Dashboard
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Resumen general del sistema de farmacia
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
+              Dashboard
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Resumen general del sistema de farmacia
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Chip 
+              label={`Última actualización: ${obtenerHoraFormato()}`}
+              size="small"
+              sx={{ 
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                fontWeight: 500
+              }}
+            />
+            <Chip 
+              icon={<Box 
+                sx={{ 
+                  width: 8, 
+                  height: 8, 
+                  borderRadius: '50%', 
+                  bgcolor: '#4ade80',
+                  ml: 1.5
+                }} 
+              />}
+              label="En Línea"
+              size="small"
+              sx={{ 
+                bgcolor: alpha('#4ade80', 0.1),
+                color: '#16a34a',
+                fontWeight: 500
+              }}
+            />
+          </Box>
+        </Box>
+        {/* Información del período */}
+        {estadisticas?.periodo && (
+          <Alert 
+            severity="info" 
+            sx={{ 
+              mt: 2,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                fontSize: 24
+              }
+            }}
+          >
+            <Typography variant="body2">
+              <strong>Período del día:</strong> 10:00 AM - 9:59 AM del día siguiente
+              <br />
+              <strong>Estado actual:</strong> {estadisticas.periodo.tipo === 'dia_actual' ? 
+                'Mostrando datos desde las 10:00 AM de hoy' : 
+                'Mostrando datos desde las 10:00 AM de ayer'}
+            </Typography>
+          </Alert>
+        )}
       </Box>
-
-      {/* Tarjetas de estadísticas */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {/* Cards de Estadísticas */}
+      <Grid container spacing={3}>
+        {/* Req. Unidades */}
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Total Insumos"
-            value={estadisticas?.totalInsumos || 0}
-            icon={Inventory}
+            title="Req. Unidades"
+            value={estadisticas?.req_unidades || 0}
+            icon={Receipt}
             gradient={['#667eea', '#764ba2']}
+            tipo="unidades"
           />
         </Grid>
+        {/* Req. Costo */}
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Alertas Activas"
-            value={estadisticas?.alertasActivas || 0}
-            icon={Warning}
+            title="Req. Costo"
+            value={estadisticas?.req_costo || 0}
+            icon={AttachMoney}
             gradient={['#f093fb', '#f5576c']}
+            tipo="costo"
           />
         </Grid>
+        {/* Receta Unidades */}
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Próximos a Vencer"
-            value={estadisticas?.lotesProximosVencer || 0}
-            icon={TrendingUp}
+            title="Receta Unidades"
+            value={estadisticas?.receta_unidades || 0}
+            icon={LocalHospital}
             gradient={['#fa709a', '#fee140']}
+            tipo="unidades"
           />
         </Grid>
+        {/* Receta Costo */}
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Movimientos Hoy"
-            value={estadisticas?.movimientosHoy || 0}
-            icon={Notifications}
+            title="Receta Costo"
+            value={estadisticas?.receta_costo || 0}
+            icon={TrendingUp}
             gradient={['#30cfd0', '#330867']}
+            tipo="costo"
           />
         </Grid>
       </Grid>
-
-      {/* Alertas recientes */}
-      {alertas.length > 0 && (
-        <Paper 
-          elevation={0} 
+      {/* Información adicional */}
+      <Box sx={{ mt: 4 }}>
+        <Card 
+          elevation={0}
           sx={{ 
-            p: 3, 
-            mb: 4,
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 2,
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            Alertas Recientes
-          </Typography>
-          {alertas.map((alerta, index) => (
-            <Alert
-              key={index}
-              severity={alerta.nivel === 'error' ? 'error' : 'warning'}
-              sx={{ 
-                mb: 1, 
-                '&:last-child': { mb: 0 },
-                borderRadius: 2,
-              }}
-            >
-              {alerta.mensaje}
-            </Alert>
-          ))}
-        </Paper>
-      )}
-
-      {/* Gráficos */}
-      <Grid container spacing={3}>
-        {/* Consumo por Servicio */}
-        <Grid item xs={12} lg={6}>
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                📊 Consumo por Servicio (30 días)
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={consumoServicio}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
-                  <XAxis 
-                    dataKey="servicio" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    height={100} 
-                    fontSize={11}
-                  />
-                  <YAxis fontSize={11} />
-                  <Tooltip 
-                    formatter={(value) => `$${parseFloat(value).toFixed(2)}`}
-                    contentStyle={{ borderRadius: 8 }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="total_costo" fill="#667eea" name="Costo Total" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Stock por Estado */}
-        <Grid item xs={12} lg={6}>
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                ⚠️ Estado de Stock
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={stockEstado}
-                    dataKey="cantidad"
-                    nameKey="estado"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                  >
-                    {stockEstado.map((entry, index) => {
-                      const colors = {
-                        'Normal': '#4caf50',
-                        'Bajo': '#ff9800',
-                        'Crítico': '#f44336',
-                        'Agotado': '#9e9e9e'
-                      };
-                      return <Cell key={`cell-${index}`} fill={colors[entry.estado] || '#8884d8'} />;
-                    })}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 8 }} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Tendencia de Requisiciones */}
-        <Grid item xs={12}>
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                📈 Tendencia de Requisiciones (30 días)
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={tendenciaRequisiciones}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
-                  <XAxis dataKey="fecha" fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip contentStyle={{ borderRadius: 8 }} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="entregadas" 
-                    stroke="#4caf50" 
-                    name="Entregadas" 
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="aprobadas" 
-                    stroke="#2196f3" 
-                    name="Aprobadas" 
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="pendientes" 
-                    stroke="#ff9800" 
-                    name="Pendientes" 
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Próximos a Vencer */}
-        <Grid item xs={12} lg={6}>
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                📅 Próximos a Vencer (60 días)
-              </Typography>
-              <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                {proximosVencer.length > 0 ? (
-                  proximosVencer.map((item, index) => (
-                    <Alert 
-                      key={index} 
-                      severity={item.dias_restantes < 30 ? 'error' : 'warning'}
-                      sx={{ 
-                        mb: 1.5, 
-                        '&:last-child': { mb: 0 },
-                        borderRadius: 2,
-                      }}
-                    >
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {item.medicamento} - {item.presentacion}
-                      </Typography>
-                      <Typography variant="caption" display="block">
-                        Lote: {item.numero_lote} | Vence: {new Date(item.fecha_vencimiento).toLocaleDateString()}
-                      </Typography>
-                      <Typography variant="caption" display="block">
-                        Stock: {item.cantidad_actual} | Días restantes: {item.dias_restantes}
-                      </Typography>
-                    </Alert>
-                  ))
-                ) : (
-                  <Typography color="text.secondary" variant="body2">
-                    No hay medicamentos próximos a vencer
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              📊 Resumen del Día
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Total Requisiciones
                   </Typography>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    {formatearNumero(estadisticas?.req_unidades || 0)} unidades
+                  </Typography>
+                  <Typography variant="h6" color="primary">
+                    {formatearMoneda(estadisticas?.req_costo || 0)}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.05), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Total Recetas
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    {formatearNumero(estadisticas?.receta_unidades || 0)} unidades
+                  </Typography>
+                  <Typography variant="h6" color="success.main">
+                    {formatearMoneda(estadisticas?.receta_costo || 0)}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ p: 2, bgcolor: alpha(theme.palette.info.main, 0.05), borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Total General del Día
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
+                    {formatearMoneda((estadisticas?.req_costo || 0) + (estadisticas?.receta_costo || 0))}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {formatearNumero((estadisticas?.req_unidades || 0) + (estadisticas?.receta_unidades || 0))} unidades totales dispensadas
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
 
-        {/* Costos por Servicio */}
-        <Grid item xs={12} lg={6}>
-          <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                💰 Costos por Servicio (30 días)
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={costosServicio} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.5)} />
-                  <XAxis type="number" fontSize={11} />
-                  <YAxis dataKey="servicio" type="category" width={150} fontSize={11} />
-                  <Tooltip 
-                    formatter={(value) => `$${parseFloat(value).toFixed(2)}`}
-                    contentStyle={{ borderRadius: 8 }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar 
-                    dataKey="costo_total" 
-                    fill="#82ca9d" 
-                    name="Costo Total"
-                    radius={[0, 8, 8, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+      {/* Gráficas originales debajo de las tarjetas */}
+      <Box sx={{ mt: 6 }}>
+        {/* Gráficos */}
+        <Grid container spacing={1.5}>
+          {/* Gráfico 1: Consumo por Servicio */}
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Consumo por Servicio (30 días)
+                </Typography>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={consumoServicio}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="servicio" angle={-45} textAnchor="end" height={80} fontSize={11} />
+                    <YAxis fontSize={11} />
+                    <Tooltip formatter={(value) => `$${parseFloat(value).toFixed(2)}`} />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Bar dataKey="total_costo" fill="#8884d8" name="Costo Total" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Gráfico 2: Stock por Estado */}
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  ⚠️ Estado de Stock
+                </Typography>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={stockEstado}
+                      dataKey="cantidad"
+                      nameKey="estado"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label
+                    >
+                      {stockEstado.map((entry, index) => {
+                        const colors = {
+                          'Normal': '#4caf50',
+                          'Bajo': '#ff9800',
+                          'Crítico': '#f44336',
+                          'Agotado': '#9e9e9e'
+                        };
+                        return <Cell key={`cell-${index}`} fill={colors[entry.estado] || '#8884d8'} />;
+                      })}
+                    </Pie>
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Gráfico 3: Tendencia de Requisiciones */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  📈 Tendencia de Requisiciones (30 días)
+                </Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={tendenciaRequisiciones}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="fecha" fontSize={11} />
+                    <YAxis fontSize={11} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Line type="monotone" dataKey="entregadas" stroke="#4caf50" name="Entregadas" strokeWidth={2} />
+                    <Line type="monotone" dataKey="aprobadas" stroke="#2196f3" name="Aprobadas" strokeWidth={2} />
+                    <Line type="monotone" dataKey="pendientes" stroke="#ff9800" name="Pendientes" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Gráfico 4: Próximos a Vencer */}
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  📅 Próximos a Vencer (60 días)
+                </Typography>
+                <Box sx={{ maxHeight: 280, overflow: 'auto' }}>
+                  {proximosVencer.length > 0 ? (
+                    proximosVencer.map((item, index) => (
+                      <Alert 
+                        key={index} 
+                        severity={item.dias_restantes < 30 ? 'error' : 'warning'}
+                        sx={{ mb: 0.5, py: 0.5, fontSize: '0.85rem', '&:last-child': { mb: 0 } }}
+                      >
+                        <strong>{item.medicamento}</strong> - {item.presentacion}
+                        <br />
+                        Lote: {item.numero_lote} | Vence: {new Date(item.fecha_vencimiento).toLocaleDateString()}
+                        <br />
+                        Stock: {item.cantidad_actual} | Días: {item.dias_restantes}
+                      </Alert>
+                    ))
+                  ) : (
+                    <Typography color="textSecondary" variant="body2">No hay medicamentos próximos a vencer</Typography>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Gráfico 5: Costos por Servicio */}
+          <Grid item xs={12} lg={6}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  💰 Costos por Servicio (30 días)
+                </Typography>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={costosServicio} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" fontSize={11} />
+                    <YAxis dataKey="servicio" type="category" width={120} fontSize={11} />
+                    <Tooltip formatter={(value) => `$${parseFloat(value).toFixed(2)}`} />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Bar dataKey="costo_total" fill="#82ca9d" name="Costo Total" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
+      </Box>
+    </Container>
   );
 };
 
