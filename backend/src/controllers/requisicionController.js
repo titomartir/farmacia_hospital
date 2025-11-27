@@ -9,6 +9,7 @@ const {
   Presentacion,
   sequelize 
 } = require('../models');
+const { LoteInventario } = require('../models');
 const logger = require('../config/logger');
 
 // Listar requisiciones
@@ -109,8 +110,8 @@ const obtenerRequisicionPorId = async (req, res) => {
               model: InsumoPresentacion,
               as: 'insumoPresentacion',
               include: [
-                { model: Insumo, as: 'insumo' },
-                { model: Presentacion, as: 'presentacion' }
+                { model: Insumo, as: 'insumo', attributes: ['id_insumo', 'nombre'] },
+                { model: Presentacion, as: 'presentacion', attributes: ['id_presentacion', 'nombre'] }
               ]
             }
           ]
@@ -271,6 +272,7 @@ const aprobarRequisicion = async (req, res) => {
       fecha_autorizacion: new Date()
     }, { transaction: t });
 
+
     // Actualizar cantidades autorizadas en detalles
     if (detalles_autorizados && detalles_autorizados.length > 0) {
       for (const detalle of detalles_autorizados) {
@@ -281,6 +283,36 @@ const aprobarRequisicion = async (req, res) => {
             transaction: t 
           }
         );
+      }
+    }
+
+    // Asignar lote automáticamente a detalles de receta sin lote
+    const detalles = await DetalleRequisicion.findAll({
+      where: { id_requisicion: id },
+      transaction: t,
+      include: [{
+        model: InsumoPresentacion,
+        as: 'insumoPresentacion',
+        include: [{ model: Insumo, as: 'insumo' }]
+      }]
+    });
+
+    for (const detalle of detalles) {
+      const insumo = detalle.insumoPresentacion?.insumo;
+      if (insumo && (insumo.subclasificacion === 'receta') && (!detalle.id_lote || detalle.id_lote === 0)) {
+        // Buscar lote disponible con stock
+        const lote = await LoteInventario.findOne({
+          where: {
+            id_insumo_presentacion: detalle.id_insumo_presentacion,
+            estado: true,
+            cantidad_actual: { [sequelize.Sequelize.Op.gt]: 0 }
+          },
+          order: [['fecha_vencimiento', 'ASC']],
+          transaction: t
+        });
+        if (lote) {
+          await detalle.update({ id_lote: lote.id_lote }, { transaction: t });
+        }
       }
     }
 
@@ -370,11 +402,20 @@ const entregarRequisicion = async (req, res) => {
     // Actualizar cantidades entregadas en detalles
     if (detalles_entregados && detalles_entregados.length > 0) {
       for (const detalle of detalles_entregados) {
+        // FIX: Obtener el precio del lote automáticamente
+        let precio_unitario_lote = 0;
+        if (detalle.id_lote) {
+          const LoteInventario = require('../models/LoteInventario');
+          const lote = await LoteInventario.findByPk(detalle.id_lote, { transaction: t });
+          if (lote) {
+            precio_unitario_lote = lote.precio_lote;
+          }
+        }
         await DetalleRequisicion.update(
           { 
             cantidad_entregada: detalle.cantidad_entregada,
             id_lote: detalle.id_lote,
-            precio_unitario: detalle.precio_unitario || 0
+            precio_unitario: precio_unitario_lote
           },
           { 
             where: { id_detalle_requisicion: detalle.id_detalle_requisicion },

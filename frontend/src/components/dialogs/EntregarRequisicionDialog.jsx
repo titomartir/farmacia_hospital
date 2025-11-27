@@ -43,9 +43,8 @@ const EntregarRequisicionDialog = ({ open, requisicion, onClose, onSuccess }) =>
       const detallesIniciales = data.detalles.map((d) => ({
         id_detalle_requisicion: d.id_detalle_requisicion,
         id_insumo_presentacion: d.id_insumo_presentacion,
-        insumo: d.insumoPresentacion?.insumo?.nombre_generico || '-',
-        presentacion:
-          d.insumoPresentacion?.presentacion?.nombre_presentacion || '-',
+        insumo: d.insumoPresentacion?.insumo?.nombre || '-',
+        presentacion: d.insumoPresentacion?.presentacion?.nombre || '-',
         cantidad_autorizada: d.cantidad_autorizada || 0,
         cantidad_entregada: d.cantidad_autorizada || 0,
         id_lote: '',
