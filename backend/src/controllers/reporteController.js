@@ -23,41 +23,71 @@ const resumenTotalMedicamentos = async (req, res) => {
       });
     }
 
-    // Query para obtener resumen de requisiciones y recetas por medicamento
-    // Se diferencia por el campo subclasificacion del insumo (NULL = requisicion por defecto)
+    // Query para sumar requisiciones y consolidados
     const query = `
       SELECT 
-        i.id_insumo,
-        i.nombre as medicamento,
-        i.clasificacion,
-        COALESCE(i.subclasificacion, 'requisicion') as subclasificacion,
-        p.nombre as presentacion,
+        id_insumo,
+        medicamento,
+        clasificacion,
+        subclasificacion,
+        presentacion,
+        SUM(req_unidades) as req_unidades,
+        SUM(req_costo) as req_costo,
+        SUM(receta_unidades) as receta_unidades,
+        SUM(receta_costo) as receta_costo,
+        SUM(total_unidades) as total_unidades,
+        SUM(total_costo) as total_costo,
+        AVG(precio_promedio) as precio_promedio
+      FROM (
+        SELECT 
+          i.id_insumo,
+          i.nombre as medicamento,
+          i.clasificacion,
+          COALESCE(i.subclasificacion, 'requisicion') as subclasificacion,
+          p.nombre as presentacion,
+          SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
+          SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) ELSE 0 END) as req_costo,
+          SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
+          SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) ELSE 0 END) as receta_costo,
+          SUM(dr.cantidad_autorizada) as total_unidades,
+          SUM(dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) as total_costo,
+          AVG(COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) as precio_promedio
+        FROM detalle_requisicion dr
+        INNER JOIN requisicion r ON dr.id_requisicion = r.id_requisicion
+        INNER JOIN insumo_presentacion ip ON dr.id_insumo_presentacion = ip.id_insumo_presentacion
+        INNER JOIN insumo i ON ip.id_insumo = i.id_insumo
+        INNER JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
+        LEFT JOIN lote_inventario l ON dr.id_lote = l.id_lote
+        WHERE r.fecha_solicitud BETWEEN :fecha_desde AND :fecha_hasta
+          AND r.estado IN ('aprobada', 'entregada')
+        GROUP BY i.id_insumo, i.nombre, i.clasificacion, i.subclasificacion, p.nombre
         
-        -- REQUISICIONES (cuando subclasificacion = 'requisicion' o es NULL)
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
+        UNION ALL
         
-        -- RECETAS (cuando subclasificacion = 'receta')
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
-        
-        -- TOTALES
-        SUM(dr.cantidad_autorizada) as total_unidades,
-        SUM(dr.cantidad_autorizada * dr.precio_unitario) as total_costo,
-        
-        AVG(dr.precio_unitario) as precio_promedio
-        
-      FROM detalle_requisicion dr
-      INNER JOIN requisicion r ON dr.id_requisicion = r.id_requisicion
-      INNER JOIN insumo_presentacion ip ON dr.id_insumo_presentacion = ip.id_insumo_presentacion
-      INNER JOIN insumo i ON ip.id_insumo = i.id_insumo
-      INNER JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
-      
-      WHERE r.fecha_solicitud BETWEEN :fecha_desde AND :fecha_hasta
-        AND r.estado IN ('aprobada', 'entregada')
-      
-      GROUP BY i.id_insumo, i.nombre, i.clasificacion, i.subclasificacion, p.nombre
-      ORDER BY i.nombre ASC
+        SELECT 
+          i.id_insumo,
+          i.nombre as medicamento,
+          i.clasificacion,
+          'receta' as subclasificacion,
+          p.nombre as presentacion,
+          0 as req_unidades,
+          0 as req_costo,
+          SUM(dc.cantidad) as receta_unidades,
+          SUM(dc.cantidad * COALESCE(NULLIF(dc.precio_unitario, 0), 0)) as receta_costo,
+          SUM(dc.cantidad) as total_unidades,
+          SUM(dc.cantidad * COALESCE(NULLIF(dc.precio_unitario, 0), 0)) as total_costo,
+          AVG(COALESCE(NULLIF(dc.precio_unitario, 0), 0)) as precio_promedio
+        FROM detalle_consolidado dc
+        INNER JOIN consolidado c ON dc.id_consolidado = c.id_consolidado
+        INNER JOIN insumo_presentacion ip ON dc.id_insumo_presentacion = ip.id_insumo_presentacion
+        INNER JOIN insumo i ON ip.id_insumo = i.id_insumo
+        INNER JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
+        WHERE c.fecha_consolidado BETWEEN :fecha_desde AND :fecha_hasta
+          AND c.estado IN ('aprobado', 'cerrado')
+        GROUP BY i.id_insumo, i.nombre, i.clasificacion, i.subclasificacion, p.nombre
+      ) as resumen
+      GROUP BY id_insumo, medicamento, clasificacion, subclasificacion, presentacion
+      ORDER BY medicamento ASC
     `;
 
     const resultados = await sequelize.query(query, {
@@ -126,6 +156,7 @@ const resumenPorServicio = async (req, res) => {
     }
 
     // Query similar pero con filtro de servicio y subclasificacion (NULL = requisicion por defecto)
+    // Usa precio_unitario si existe, si no usa precio_lote del lote asignado
     const query = `
       SELECT 
         i.id_insumo,
@@ -137,17 +168,17 @@ const resumenPorServicio = async (req, res) => {
         
         -- REQUISICIONES (cuando subclasificacion = 'requisicion' o es NULL)
         SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as req_costo,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) ELSE 0 END) as req_costo,
         
         -- RECETAS (cuando subclasificacion = 'receta')
         SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
-        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * dr.precio_unitario) ELSE 0 END) as receta_costo,
+        SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN (dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) ELSE 0 END) as receta_costo,
         
         -- TOTALES
         SUM(dr.cantidad_autorizada) as total_unidades,
-        SUM(dr.cantidad_autorizada * dr.precio_unitario) as total_costo,
+        SUM(dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) as total_costo,
         
-        AVG(dr.precio_unitario) as precio_promedio
+        AVG(COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) as precio_promedio
         
       FROM detalle_requisicion dr
       INNER JOIN requisicion r ON dr.id_requisicion = r.id_requisicion
@@ -155,6 +186,7 @@ const resumenPorServicio = async (req, res) => {
       INNER JOIN insumo i ON ip.id_insumo = i.id_insumo
       INNER JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
       INNER JOIN servicio s ON r.id_servicio = s.id_servicio
+      LEFT JOIN lote_inventario l ON dr.id_lote = l.id_lote
       
       WHERE r.fecha_solicitud BETWEEN :fecha_desde AND :fecha_hasta
         AND r.id_servicio = :id_servicio
@@ -231,11 +263,12 @@ const consumoPorServicio = async (req, res) => {
         s.nombre_servicio as servicio,
         COUNT(DISTINCT r.id_requisicion) as total_requisiciones,
         SUM(dr.cantidad_autorizada) as total_unidades,
-        SUM(dr.cantidad_autorizada * dr.precio_unitario) as total_costo
+        SUM(dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) as total_costo
         
       FROM requisicion r
       INNER JOIN servicio s ON r.id_servicio = s.id_servicio
       INNER JOIN detalle_requisicion dr ON r.id_requisicion = dr.id_requisicion
+      LEFT JOIN lote_inventario l ON dr.id_lote = l.id_lote
       
       WHERE r.fecha_solicitud BETWEEN :fecha_desde AND :fecha_hasta
         AND r.estado IN ('aprobada', 'entregada')
