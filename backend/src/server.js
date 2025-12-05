@@ -23,7 +23,18 @@ app.use(helmet());
 
 // CORS - Permitir múltiples orígenes para desarrollo
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://192.168.1.114:5173',
+    'http://192.168.1.114:5174',
+    'http://192.168.1.114',
+    'http://192.168.0.164:5173',
+    'http://192.168.0.164:5174',
+    'http://192.168.0.164',
+    'http://localhost',
+    'http://127.0.0.1'
+  ],
   credentials: true
 }));
 

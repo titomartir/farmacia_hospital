@@ -269,6 +269,48 @@ const crearConsolidado = async (req, res) => {
   }
 };
 
+// Aprobar consolidado (cambiar estado de 'activo' a 'aprobado')
+const aprobarConsolidado = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const consolidado = await Consolidado.findByPk(id);
+
+    if (!consolidado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Consolidado no encontrado'
+      });
+    }
+
+    if (consolidado.estado !== 'activo') {
+      return res.status(400).json({
+        success: false,
+        message: 'Solo se pueden aprobar consolidados en estado activo'
+      });
+    }
+
+    await consolidado.update({
+      estado: 'aprobado'
+    });
+
+    logger.info(`Consolidado aprobado: ${id} por usuario ${req.usuario.id_usuario}`);
+
+    res.json({
+      success: true,
+      message: 'Consolidado aprobado correctamente',
+      data: consolidado
+    });
+  } catch (error) {
+    logger.error('Error al aprobar consolidado:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al aprobar consolidado',
+      error: error.message
+    });
+  }
+};
+
 // Cerrar consolidado (cambiar estado a 'cerrado')
 const cerrarConsolidado = async (req, res) => {
   try {
@@ -374,11 +416,11 @@ const entregarConsolidado = async (req, res) => {
       });
     }
 
-    if (consolidado.estado !== 'activo') {
+    if (consolidado.estado !== 'aprobado') {
       await t.rollback();
       return res.status(400).json({
         success: false,
-        message: 'El consolidado no está activo'
+        message: 'Solo se pueden entregar consolidados en estado aprobado'
       });
     }
 
@@ -458,6 +500,7 @@ module.exports = {
   listarConsolidados,
   obtenerConsolidadoPorId,
   crearConsolidado,
+  aprobarConsolidado,
   cerrarConsolidado,
   anularConsolidado,
   entregarConsolidado

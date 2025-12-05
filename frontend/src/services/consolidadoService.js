@@ -27,6 +27,12 @@ const consolidadoService = {
     return response.data.data;
   },
 
+  // Aprobar consolidado
+  async aprobarConsolidado(id) {
+    const response = await api.post(`/consolidados/${id}/aprobar`);
+    return response.data.data;
+  },
+
   // Cerrar consolidado
   async cerrarConsolidado(id) {
     const response = await api.post(`/consolidados/${id}/cerrar`);

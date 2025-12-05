@@ -15,6 +15,9 @@ router.get('/:id', consolidadoController.obtenerConsolidadoPorId);
 // POST /api/consolidados - Crear nuevo
 router.post('/', consolidadoController.crearConsolidado);
 
+// POST /api/consolidados/:id/aprobar - Aprobar consolidado
+router.post('/:id/aprobar', consolidadoController.aprobarConsolidado);
+
 // POST /api/consolidados/:id/cerrar - Cerrar consolidado
 router.post('/:id/cerrar', consolidadoController.cerrarConsolidado);
 

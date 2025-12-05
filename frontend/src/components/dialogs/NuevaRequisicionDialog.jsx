@@ -222,6 +222,23 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
         return;
       }
 
+      // Validar campos obligatorios de los pacientes
+      for (let i = 0; i < datosMatriz.length; i++) {
+        const fila = datosMatriz[i];
+        if (fila.nombre_paciente.trim()) {
+          // Si hay nombre de paciente, validar que tenga sexo
+          if (!fila.sexo || fila.sexo.trim() === '') {
+            setError(`Fila ${i + 1}: Debe seleccionar el sexo del paciente "${fila.nombre_paciente}"`);
+            return;
+          }
+          // Validar que el sexo sea válido
+          if (fila.sexo !== 'M' && fila.sexo !== 'H') {
+            setError(`Fila ${i + 1}: El sexo debe ser M (Mujer) o H (Hombre) para el paciente "${fila.nombre_paciente}"`);
+            return;
+          }
+        }
+      }
+
       // Construir detalles para el backend
       const detalles = [];
       datosMatriz.forEach(fila => {

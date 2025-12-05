@@ -1,3 +1,77 @@
+// Helper para obtener el rango de fecha con corte a las 10:00 am
+function getDiaActualRango() {
+  const now = new Date();
+  let inicio, fin;
+  if (now.getHours() < 10) {
+    inicio = new Date(now);
+    inicio.setDate(now.getDate() - 1);
+    inicio.setHours(10, 0, 0, 0);
+    fin = new Date(now);
+    fin.setHours(10, 0, 0, 0);
+  } else {
+    inicio = new Date(now);
+    inicio.setHours(10, 0, 0, 0);
+    fin = new Date(now);
+    fin.setDate(now.getDate() + 1);
+    fin.setHours(10, 0, 0, 0);
+  }
+  return { inicio, fin };
+}
+
+// Endpoint para totales del día (Requisiciones + Consolidados)
+const { Consolidado, DetalleConsolidado } = require('../models');
+const getTotalesDia = async (req, res) => {
+  try {
+    const { inicio, fin } = getDiaActualRango();
+
+    // Requisiciones del día
+    const reqs = await DetalleRequisicion.findAll({
+      include: [{ model: Requisicion, as: 'requisicion', where: {
+        fecha: { [Op.gte]: inicio, [Op.lt]: fin },
+        tipo: 'requisicion'
+      }}]
+    });
+    const totalUnidadesRequisiciones = reqs.reduce((acc, dr) => acc + (parseFloat(dr.cantidad) || 0), 0);
+    const totalCostoRequisiciones = reqs.reduce((acc, dr) => acc + ((parseFloat(dr.precio_unitario) || 0) * (parseFloat(dr.cantidad) || 0)), 0);
+
+    // Recetas del día
+    const recetas = await DetalleRequisicion.findAll({
+      include: [{ model: Requisicion, as: 'requisicion', where: {
+        fecha: { [Op.gte]: inicio, [Op.lt]: fin },
+        tipo: 'receta'
+      }}]
+    });
+    const totalUnidadesRecetas = recetas.reduce((acc, dr) => acc + (parseFloat(dr.cantidad) || 0), 0);
+    const totalCostoRecetas = recetas.reduce((acc, dr) => acc + ((parseFloat(dr.precio_unitario) || 0) * (parseFloat(dr.cantidad) || 0)), 0);
+
+    // Consolidados del día
+    const consolidados = await DetalleConsolidado.findAll({
+      include: [{
+        model: Consolidado,
+        as: 'consolidado',
+        where: {
+          fecha_consolidado: { [Op.gte]: inicio, [Op.lt]: fin },
+          estado: { [Op.in]: ['aprobado', 'cerrado'] }
+        },
+        required: true
+      }]
+    });
+    const totalUnidadesConsolidados = consolidados.reduce((acc, dc) => acc + (parseFloat(dc.cantidad) || 0), 0);
+    const totalCostoConsolidados = consolidados.reduce((acc, dc) => acc + ((parseFloat(dc.precio_unitario) || 0) * (parseFloat(dc.cantidad) || 0)), 0);
+
+    // Sumar totales de ambos módulos
+    res.json({
+      totalUnidadesRequisiciones: totalUnidadesRequisiciones + totalUnidadesConsolidados,
+      totalCostoRequisiciones: totalCostoRequisiciones + totalCostoConsolidados,
+      totalUnidadesRecetas,
+      totalCostoRecetas
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error obteniendo totales del día', details: err.message });
+  }
+};
+
+module.exports.getTotalesDia = getTotalesDia;
 const { 
   Insumo,
   InsumoPresentacion,

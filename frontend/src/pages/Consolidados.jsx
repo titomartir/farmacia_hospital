@@ -81,15 +81,19 @@ const Consolidados = () => {
     setConsolidadoSeleccionado(consolidado);
     setDialogEntregar(true);
   };
-  const handleCerrar = async (consolidado) => {
-    if (!window.confirm('¿Está seguro de cerrar este consolidado?')) return;
+  
+  const handleAprobar = async (consolidado) => {
+    if (!window.confirm('¿Está seguro de aprobar este consolidado?')) return;
     try {
-      await consolidadoService.cerrarConsolidado(consolidado.id_consolidado);
+      await consolidadoService.aprobarConsolidado(consolidado.id_consolidado);
       cargarConsolidados();
     } catch (err) {
-      setError(err.message || 'Error al cerrar consolidado');
+      setError(err.message || 'Error al aprobar consolidado');
     }
   };
+  
+  // Eliminada función cerrar consolidado
+  
   const handleAnular = async (consolidado) => {
     const motivo = window.prompt('Ingrese el motivo de anulación:');
     if (!motivo) return;
@@ -102,7 +106,12 @@ const Consolidados = () => {
   };
 
   const getEstadoColor = (estado) => {
-    const colores = { activo: 'primary', cerrado: 'success', anulado: 'error' };
+    const colores = { 
+      activo: 'primary', 
+      aprobado: 'info',
+      cerrado: 'success', 
+      anulado: 'error' 
+    };
     return colores[estado] || 'default';
   };
 
@@ -196,8 +205,13 @@ const Consolidados = () => {
                     <Tooltip title="Ver detalles"><IconButton size="small" onClick={() => handleVerDetalle(cons)}><VisibilityIcon /></IconButton></Tooltip>
                     {cons.estado === 'activo' && (
                       <>
+                        <Tooltip title="Aprobar"><IconButton size="small" color="success" onClick={() => handleAprobar(cons)}><CheckCircleIcon /></IconButton></Tooltip>
+                        <Tooltip title="Anular"><IconButton size="small" color="error" onClick={() => handleAnular(cons)}><CancelIcon /></IconButton></Tooltip>
+                      </>
+                    )}
+                    {cons.estado === 'aprobado' && (
+                      <>
                         <Tooltip title="Entregar"><IconButton size="small" color="primary" onClick={() => handleEntregar(cons)}><LocalShippingIcon /></IconButton></Tooltip>
-                        <Tooltip title="Cerrar"><IconButton size="small" color="success" onClick={() => handleCerrar(cons)}><CheckCircleIcon /></IconButton></Tooltip>
                         <Tooltip title="Anular"><IconButton size="small" color="error" onClick={() => handleAnular(cons)}><CancelIcon /></IconButton></Tooltip>
                       </>
                     )}

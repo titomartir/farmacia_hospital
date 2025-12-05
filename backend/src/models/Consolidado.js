@@ -39,7 +39,7 @@ const Consolidado = sequelize.define('consolidado', {
     type: DataTypes.STRING(20),
     defaultValue: 'activo',
     validate: {
-      isIn: [['activo', 'cerrado', 'anulado']]
+      isIn: [['activo', 'aprobado', 'cerrado', 'anulado']]
     }
   },
   fecha_creacion: {
