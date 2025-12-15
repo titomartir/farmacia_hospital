@@ -31,22 +31,64 @@ import {
   Assignment as AssignmentIcon,
   Description as DescriptionIcon,
   Warehouse as WarehouseIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import { toggleSidebar } from '../../redux/slices/uiSlice';
 import { logout } from '../../redux/slices/authSlice';
 
 const drawerWidth = 260;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Medicamentos', icon: <Inventory />, path: '/insumos' },
-  { text: 'Ingresos', icon: <LocalShipping />, path: '/ingresos' },
-  { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
-  { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
-  { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
-  { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
-  { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
-];
+
+// Definición de módulos por rol
+const modulesByRole = {
+  administrador: [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Medicamentos', icon: <Inventory />, path: '/insumos' },
+    { text: 'Ingresos', icon: <LocalShipping />, path: '/ingresos' },
+    { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
+    { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
+    { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+    { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
+    { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
+    { text: 'Usuarios', icon: <PeopleIcon />, path: '/usuarios' },
+  ],
+  asistente: [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Medicamentos', icon: <Inventory />, path: '/insumos' },
+    { text: 'Ingresos', icon: <LocalShipping />, path: '/ingresos' },
+    { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
+    { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
+    { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+    { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
+    { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
+  ],
+  bodeguero: [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Medicamentos', icon: <Inventory />, path: '/insumos' },
+    { text: 'Ingresos', icon: <LocalShipping />, path: '/ingresos' },
+    { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
+    { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
+    { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+    { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
+    { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
+  ],
+  farmaceutico: [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
+    { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
+    { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+    { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
+    { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
+  ],
+  turnista: [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Stock 24h', icon: <Inventory2Icon />, path: '/stock-24h' },
+    { text: 'Requisiciones', icon: <AssignmentIcon />, path: '/requisiciones' },
+    { text: 'Consolidados', icon: <DescriptionIcon />, path: '/consolidados' },
+    { text: 'Inventario Total', icon: <WarehouseIcon />, path: '/inventario-total' },
+    { text: 'Reportes', icon: <Assessment />, path: '/reportes' },
+  ],
+};
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -190,7 +232,7 @@ const Layout = () => {
         <Toolbar />
         <Box sx={{ overflow: 'auto', py: 2, px: 2 }}>
           <List sx={{ gap: 0.5, display: 'flex', flexDirection: 'column' }}>
-            {menuItems.map((item) => (
+            {(modulesByRole[usuario?.rol] || []).map((item) => (
               <ListItem key={item.text} disablePadding>
                 <ListItemButton
                   onClick={() => handleMenuClick(item.path)}

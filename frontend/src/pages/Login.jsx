@@ -43,7 +43,11 @@ const Login = () => {
 
     try {
       console.log('Enviando login...');
-      const response = await api.post('/auth/login', formData);
+      const payload = {
+        nombre_usuario: formData.nombre_usuario.trim(),
+        password: formData.password.trim(),
+      };
+      const response = await api.post('/auth/login', payload);
       console.log('Respuesta del login:', response.data);
       
       if (response.data.success) {

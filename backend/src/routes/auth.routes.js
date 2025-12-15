@@ -27,4 +27,11 @@ router.get('/usuarios', verificarToken, authController.listarUsuarios);
 router.post('/cambiar-password', verificarToken, validacionCambiarPassword, validarResultados, authController.cambiarPassword);
 router.post('/logout', verificarToken, authController.logout);
 
+// Rutas de administración de usuarios (solo admin)
+router.post('/usuarios', verificarToken, authController.crearUsuario);
+router.put('/usuarios/:id', verificarToken, authController.actualizarUsuario);
+router.put('/usuarios/:id/password', verificarToken, authController.cambiarPasswordUsuario);
+router.delete('/usuarios/:id', verificarToken, authController.eliminarUsuario);
+router.put('/usuarios/:id/activar', verificarToken, authController.activarUsuario);
+
 module.exports = router;

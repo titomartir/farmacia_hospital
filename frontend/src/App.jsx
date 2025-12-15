@@ -14,6 +14,7 @@ import Consolidados from './pages/Consolidados';
 import Compras from './pages/Compras';
 import Reportes from './pages/Reportes';
 import InventarioTotal from './pages/InventarioTotal';
+import Usuarios from './pages/Usuarios';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
@@ -43,6 +44,7 @@ function App() {
               <Route path="compras" element={<Compras />} />
               <Route path="reportes" element={<Reportes />} />
               <Route path="inventario-total" element={<InventarioTotal />} />
+              <Route path="usuarios" element={<Usuarios />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

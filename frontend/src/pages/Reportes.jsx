@@ -7,6 +7,129 @@ import {
 import {
   Download as DownloadIcon, Print as PrintIcon, Search as SearchIcon, Assessment as AssessmentIcon,
 } from '@mui/icons-material';
+  // Exportar a Excel - Resumen Total
+  const exportarResumenTotalExcel = () => {
+    if (!resumenTotal) return;
+    const ws = XLSX.utils.json_to_sheet(resumenTotal.medicamentos.map(item => ({
+      Medicamento: item.medicamento,
+      Presentación: item.presentacion,
+      'Req. Unidades': item.req_unidades,
+      'Req. Costo': item.req_costo,
+      'Receta Unidades': item.receta_unidades,
+      'Receta Costo': item.receta_costo,
+      'Total Unidades': item.total_unidades,
+      'Total Costo': item.total_costo,
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ResumenTotal');
+    XLSX.writeFile(wb, 'reporte_resumen_total.xlsx');
+  };
+
+  // Exportar a PDF - Resumen Total
+  const exportarResumenTotalPDF = () => {
+    if (!resumenTotal) return;
+    const doc = new jsPDF();
+    doc.text('Reporte: Resumen Total por Medicamento', 14, 14);
+    doc.text(`Período: ${resumenTotal.periodo.fecha_desde} al ${resumenTotal.periodo.fecha_hasta}`, 14, 22);
+    doc.autoTable({
+      startY: 28,
+      head: [[
+        'Medicamento', 'Presentación', 'Req. Unidades', 'Req. Costo',
+        'Receta Unidades', 'Receta Costo', 'Total Unidades', 'Total Costo'
+      ]],
+      body: resumenTotal.medicamentos.map(item => ([
+        item.medicamento,
+        item.presentacion,
+        item.req_unidades,
+        item.req_costo,
+        item.receta_unidades,
+        item.receta_costo,
+        item.total_unidades,
+        item.total_costo
+      ])),
+    });
+    doc.save('reporte_resumen_total.pdf');
+  };
+
+  // Exportar a Excel - Resumen por Servicio
+  const exportarResumenServicioExcel = () => {
+    if (!resumenServicio) return;
+    const ws = XLSX.utils.json_to_sheet(resumenServicio.medicamentos.map(item => ({
+      Medicamento: item.medicamento,
+      Presentación: item.presentacion,
+      'Req. Unidades': item.req_unidades,
+      'Req. Costo': item.req_costo,
+      'Receta Unidades': item.receta_unidades,
+      'Receta Costo': item.receta_costo,
+      'Total Unidades': item.total_unidades,
+      'Total Costo': item.total_costo,
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ResumenServicio');
+    XLSX.writeFile(wb, 'reporte_resumen_servicio.xlsx');
+  };
+
+  // Exportar a PDF - Resumen por Servicio
+  const exportarResumenServicioPDF = () => {
+    if (!resumenServicio) return;
+    const doc = new jsPDF();
+    doc.text('Reporte: Resumen por Servicio', 14, 14);
+    doc.text(`Servicio: ${resumenServicio.servicio}`, 14, 22);
+    doc.text(`Período: ${resumenServicio.periodo.fecha_desde} al ${resumenServicio.periodo.fecha_hasta}`, 14, 30);
+    doc.autoTable({
+      startY: 36,
+      head: [[
+        'Medicamento', 'Presentación', 'Req. Unidades', 'Req. Costo',
+        'Receta Unidades', 'Receta Costo', 'Total Unidades', 'Total Costo'
+      ]],
+      body: resumenServicio.medicamentos.map(item => ([
+        item.medicamento,
+        item.presentacion,
+        item.req_unidades,
+        item.req_costo,
+        item.receta_unidades,
+        item.receta_costo,
+        item.total_unidades,
+        item.total_costo
+      ])),
+    });
+    doc.save('reporte_resumen_servicio.pdf');
+  };
+
+  // Exportar a Excel - Consumo por Servicio
+  const exportarConsumoServiciosExcel = () => {
+    if (!consumoServicios) return;
+    const ws = XLSX.utils.json_to_sheet(consumoServicios.servicios.map(item => ({
+      Servicio: item.servicio,
+      'Total Requisiciones': item.total_requisiciones,
+      'Total Unidades': item.total_unidades,
+      'Total Costo': item.total_costo,
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ConsumoServicios');
+    XLSX.writeFile(wb, 'reporte_consumo_servicios.xlsx');
+  };
+
+  // Exportar a PDF - Consumo por Servicio
+  const exportarConsumoServiciosPDF = () => {
+    if (!consumoServicios) return;
+    const doc = new jsPDF();
+    doc.text('Reporte: Consumo por Servicio', 14, 14);
+    doc.text(`Período: ${consumoServicios.periodo.fecha_desde} al ${consumoServicios.periodo.fecha_hasta}`, 14, 22);
+    doc.autoTable({
+      startY: 28,
+      head: [[
+        'Servicio', 'Total Requisiciones', 'Total Unidades', 'Total Costo'
+      ]],
+      body: consumoServicios.servicios.map(item => ([
+        item.servicio,
+        item.total_requisiciones,
+        item.total_unidades,
+        item.total_costo
+      ])),
+    });
+    doc.save('reporte_consumo_servicios.pdf');
+  };
 import api from '../services/api';
 
 const Reportes = () => {
@@ -278,6 +401,7 @@ const Reportes = () => {
               <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
                 <Button variant="contained" startIcon={<SearchIcon />} onClick={generarConsumoServicios} disabled={loading}>Generar Reporte</Button>
                 <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()} disabled={!consumoServicios}>Imprimir</Button>
+                {/* Aquí puedes agregar exportación si lo deseas */}
               </Stack>
 
               {loading && <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><CircularProgress /></Box>}
