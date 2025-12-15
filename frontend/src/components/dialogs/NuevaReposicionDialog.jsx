@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +29,7 @@ import stock24hService from '../../services/stock24hService';
 import insumoService from '../../services/insumoService';
 
 const NuevaReposicionDialog = ({ open, onClose }) => {
+  const usuario = useSelector(state => state.auth.user);
   const [detalles, setDetalles] = useState([]);
   const [observaciones, setObservaciones] = useState('');
   const [loading, setLoading] = useState(false);
@@ -137,7 +139,7 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
 
       const data = {
         fecha_reposicion: fecha,
-        id_usuario_recibe: null, // Por ahora null, se puede agregar selector después
+        id_usuario_recibe: usuario?.id_usuario || null, // Usuario que recibe (mismo que entrega)
         detalles: detalles.map(d => ({
           id_insumo_presentacion: d.id_insumo_presentacion,
           id_lote: d.id_lote,
