@@ -99,8 +99,8 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
       cantidad: parseFloat(cantidad),
       precio_unitario: parseFloat(selectedLote.precio_lote || 0),
       // Datos para mostrar en la tabla
-      nombre_insumo: selectedInsumo.insumo?.nombre_insumo || 'N/A',
-      presentacion: selectedInsumo.presentacion?.nombre_presentacion || 'N/A',
+      nombre_insumo: selectedInsumo.insumo?.nombre || 'N/A',
+      presentacion: selectedInsumo.presentacion?.nombre || 'N/A',
       numero_lote: selectedLote.numero_lote,
       fecha_vencimiento: selectedLote.fecha_vencimiento
     };
@@ -188,8 +188,8 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
                 <Autocomplete
                   options={insumosPresentacion}
                   getOptionLabel={(option) => {
-                    const nombre = option.insumo?.nombre_insumo || 'Sin nombre';
-                    const presentacion = option.presentacion?.nombre_presentacion || 'Sin presentación';
+                    const nombre = option.insumo?.nombre || 'Sin nombre';
+                    const presentacion = option.presentacion?.nombre || 'Sin presentación';
                     return `${nombre} - ${presentacion}`;
                   }}
                   getOptionKey={(option) => option.id_insumo_presentacion}
