@@ -132,12 +132,19 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
       setLoading(true);
       setError(null);
 
+      const ahora = new Date();
+      const fecha = ahora.toISOString().split('T')[0]; // YYYY-MM-DD
+
       const data = {
+        fecha_reposicion: fecha,
+        id_usuario_recibe: null, // Por ahora null, se puede agregar selector después
         detalles: detalles.map(d => ({
           id_insumo_presentacion: d.id_insumo_presentacion,
           id_lote: d.id_lote,
-          cantidad: d.cantidad,
-          precio_unitario: d.precio_unitario
+          cantidad_debe_haber: 0, // Se puede calcular del stock configurado
+          cantidad_actual: 0, // Stock actual antes de reponer
+          cantidad_reponer: d.cantidad,
+          observaciones: ''
         })),
         observaciones
       };
