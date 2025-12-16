@@ -42,12 +42,24 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
   const [selectedInsumo, setSelectedInsumo] = useState(null);
   const [selectedLote, setSelectedLote] = useState(null);
   const [cantidad, setCantidad] = useState('');
+  const [stock24hData, setStock24hData] = useState([]);
 
   useEffect(() => {
     if (open) {
       cargarInsumosPresentacion();
+      cargarStock24h();
     }
   }, [open]);
+
+  const cargarStock24h = async () => {
+    try {
+      const response = await stock24hService.getStock24h();
+      setStock24hData(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('Error al cargar Stock24h:', err);
+      setStock24hData([]);
+    }
+  };
 
   const cargarInsumosPresentacion = async () => {
     try {
@@ -82,6 +94,14 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
     }
   };
 
+  const getValoresStock24h = (idInsumoPresentacion) => {
+    const stock24h = stock24hData.find(s => s.id_insumo_presentacion === idInsumoPresentacion);
+    return {
+      stock_actual: stock24h?.stock_actual || 0,
+      cantidad_fija: stock24h?.cantidad_fija || 0
+    };
+  };
+
   const handleAgregarDetalle = () => {
     if (!selectedInsumo || !selectedLote || !cantidad || cantidad <= 0) {
       setError('Complete todos los campos para agregar el detalle');
@@ -100,6 +120,8 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
       id_lote: selectedLote.id_lote,
       cantidad: parseFloat(cantidad),
       precio_unitario: parseFloat(selectedLote.precio_lote || 0),
+      // Obtener valores reales del Stock24h
+      ...getValoresStock24h(selectedInsumo.id_insumo_presentacion),
       // Datos para mostrar en la tabla
       nombre_insumo: selectedInsumo.insumo?.nombre || 'N/A',
       presentacion: selectedInsumo.presentacion?.nombre || 'N/A',
@@ -143,8 +165,8 @@ const NuevaReposicionDialog = ({ open, onClose }) => {
         detalles: detalles.map(d => ({
           id_insumo_presentacion: d.id_insumo_presentacion,
           id_lote: d.id_lote,
-          cantidad_debe_haber: 0, // Se puede calcular del stock configurado
-          cantidad_actual: 0, // Stock actual antes de reponer
+          cantidad_debe_haber: d.cantidad_fija, // Stock objetivo configurado
+          cantidad_actual: d.stock_actual, // Stock actual antes de reponer
           cantidad_reponer: d.cantidad,
           observaciones: ''
         })),

@@ -30,12 +30,39 @@ import stock24hService from '../../services/stock24hService';
 
 const DetalleReposicionRow = ({ reposicion }) => {
   const [open, setOpen] = useState(false);
+  const [detallesCargados, setDetallesCargados] = useState(null);
+  const [cargando, setCargando] = useState(false);
+
+  const cargarDetalles = async () => {
+    if (detallesCargados !== null) {
+      // Ya fueron cargados, solo abrir/cerrar
+      setOpen(!open);
+      return;
+    }
+
+    try {
+      setCargando(true);
+      const response = await stock24hService.getReposicionById(reposicion.id_reposicion);
+      setDetallesCargados(response.data);
+      setOpen(true);
+    } catch (err) {
+      console.error('Error al cargar detalles:', err);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const mostrarDetalles = detallesCargados || reposicion;
 
   return (
     <>
       <TableRow hover>
         <TableCell>
-          <IconButton size="small" onClick={() => setOpen(!open)}>
+          <IconButton 
+            size="small" 
+            onClick={cargarDetalles}
+            disabled={cargando}
+          >
             {open ? <ArrowUpIcon /> : <ArrowDownIcon />}
           </IconButton>
         </TableCell>
@@ -53,7 +80,7 @@ const DetalleReposicionRow = ({ reposicion }) => {
         </TableCell>
         <TableCell>
           <Chip 
-            label={`${reposicion.detalles?.length || 0} items`}
+            label={`${mostrarDetalles.detalles?.length || 0} items`}
             size="small"
             color="primary"
           />
@@ -83,25 +110,25 @@ const DetalleReposicionRow = ({ reposicion }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reposicion.detalles?.map((detalle, index) => (
+                  {mostrarDetalles.detalles?.map((detalle, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        {detalle.insumoPresentacion?.insumo?.nombre_insumo || 'N/A'}
+                        {detalle.insumoPresentacion?.insumo?.nombre || 'N/A'}
                       </TableCell>
                       <TableCell>
-                        {detalle.insumoPresentacion?.presentacion?.nombre_presentacion || 'N/A'}
+                        {detalle.insumoPresentacion?.presentacion?.nombre || 'N/A'}
                       </TableCell>
                       <TableCell>
                         {detalle.lote?.numero_lote || 'N/A'}
                       </TableCell>
                       <TableCell align="right">
-                        {parseFloat(detalle.cantidad || 0).toFixed(2)}
+                        {parseFloat(detalle.cantidad_reponer || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         Q{parseFloat(detalle.precio_unitario || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
-                        Q{(parseFloat(detalle.cantidad || 0) * parseFloat(detalle.precio_unitario || 0)).toFixed(2)}
+                        Q{(parseFloat(detalle.cantidad_reponer || 0) * parseFloat(detalle.precio_unitario || 0)).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -113,8 +140,8 @@ const DetalleReposicionRow = ({ reposicion }) => {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="subtitle2" fontWeight="bold">
-                        Q{reposicion.detalles?.reduce((sum, d) => 
-                          sum + (parseFloat(d.cantidad || 0) * parseFloat(d.precio_unitario || 0)), 0
+                        Q{mostrarDetalles.detalles?.reduce((sum, d) => 
+                          sum + (parseFloat(d.cantidad_reponer || 0) * parseFloat(d.precio_unitario || 0)), 0
                         ).toFixed(2)}
                       </Typography>
                     </TableCell>

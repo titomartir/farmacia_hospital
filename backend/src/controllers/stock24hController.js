@@ -323,12 +323,21 @@ const crearReposicion = async (req, res) => {
         observaciones: detalle.observaciones
       }, { transaction: t });
 
-      // Actualizar stock_actual en stock_24_horas
+      // Actualizar stock_actual y ultima_reposicion en stock_24_horas
       await Stock24Horas.increment(
         { stock_actual: detalle.cantidad_reponer },
         { 
           where: { id_insumo_presentacion: detalle.id_insumo_presentacion },
           transaction: t 
+        }
+      );
+
+      // Actualizar fecha de última reposición
+      await Stock24Horas.update(
+        { ultima_reposicion: fecha_reposicion },
+        {
+          where: { id_insumo_presentacion: detalle.id_insumo_presentacion },
+          transaction: t
         }
       );
     }
@@ -504,6 +513,65 @@ const obtenerEstadisticas = async (req, res) => {
   }
 };
 
+// Obtener una reposición por ID con sus detalles
+const obtenerReposicionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const reposicion = await ReposicionStock24h.findByPk(id, {
+      include: [
+        {
+          model: DetalleReposicionStock,
+          as: 'detalles',
+          include: [
+            {
+              model: InsumoPresentacion,
+              as: 'insumoPresentacion',
+              include: [
+                { model: Insumo, as: 'insumo' },
+                { model: Presentacion, as: 'presentacion' }
+              ]
+            },
+            {
+              model: LoteInventario,
+              as: 'lote'
+            }
+          ]
+        },
+        {
+          model: Usuario,
+          as: 'usuarioEntrega',
+          include: [{ model: Personal, as: 'personal' }]
+        },
+        {
+          model: Usuario,
+          as: 'usuarioRecibe',
+          include: [{ model: Personal, as: 'personal' }]
+        }
+      ]
+    });
+
+    if (!reposicion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reposición no encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: reposicion
+    });
+  } catch (error) {
+    logger.error('Error al obtener reposición:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener reposición',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   listarStock24h,
   configurarStockFijo,
@@ -511,5 +579,6 @@ module.exports = {
   obtenerAlertas,
   crearReposicion,
   listarReposiciones,
+  obtenerReposicionById,
   obtenerEstadisticas
 };

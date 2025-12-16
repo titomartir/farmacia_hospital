@@ -12,8 +12,8 @@ const stock24hService = {
     return response.data;
   },
 
-  configurarStock: async (id, data) => {
-    const response = await api.put(`/stock-24h/${id}/configurar`, data);
+  configurarStock: async (data) => {
+    const response = await api.post('/stock-24h/configurar', data);
     return response.data;
   },
 

@@ -31,7 +31,8 @@ const ConfigurarStockDialog = ({ open, item, onClose }) => {
       setLoading(true);
       setError(null);
 
-      await stock24hService.configurarStock(item.id_stock_24h, {
+      await stock24hService.configurarStock({
+        id_insumo_presentacion: item.id_insumo_presentacion,
         cantidad_fija: parseFloat(cantidadFija)
       });
 
@@ -54,10 +55,10 @@ const ConfigurarStockDialog = ({ open, item, onClose }) => {
               Medicamento
             </Typography>
             <Typography variant="body1" fontWeight="medium">
-              {item?.insumo_presentacion?.insumo?.nombre_insumo || 'N/A'}
+              {item?.insumoPresentacion?.insumo?.nombre || 'N/A'}
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              {item?.insumo_presentacion?.presentacion?.nombre_presentacion || 'N/A'}
+              {item?.insumoPresentacion?.presentacion?.nombre || 'N/A'}
             </Typography>
           </Box>
 
@@ -66,7 +67,7 @@ const ConfigurarStockDialog = ({ open, item, onClose }) => {
               Stock Actual
             </Typography>
             <Typography variant="h6">
-              {parseFloat(item?.cantidad_actual || 0).toFixed(2)} unidades
+              {parseFloat(item?.stock_actual || 0).toFixed(2)} unidades
             </Typography>
           </Box>
 

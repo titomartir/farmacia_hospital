@@ -40,7 +40,9 @@ const Stock24h = () => {
       setLoading(true);
       setError(null);
       const params = {};
-      if (nivelAlerta !== 'todos') params.nivel_alerta = nivelAlerta;
+      if (nivelAlerta !== 'todos' && nivelAlerta !== 'ok') {
+        params.alerta = nivelAlerta === 'crítico' ? 'critico' : nivelAlerta;
+      }
       const [stockData, statsData] = await Promise.all([
         stock24hService.getStock24h(params).catch(() => ({ data: [], success: false })),
         stock24hService.getEstadisticas().catch(() => ({ data: null, success: false }))
@@ -72,17 +74,22 @@ const Stock24h = () => {
   };
 
   const getNivelAlertaConfig = (nivel) => {
-    switch (nivel?.toLowerCase()) {
-      case 'crítico': case 'critico': return { color: 'error', icon: <ErrorIcon />, label: 'CRÍTICO' };
-      case 'bajo': return { color: 'warning', icon: <WarningIcon />, label: 'BAJO' };
-      case 'ok': return { color: 'success', icon: <CheckCircleIcon />, label: 'OK' };
-      default: return { color: 'default', icon: null, label: nivel || 'N/A' };
+    switch (nivel?.toLowerCase?.()) {
+      case 'crítico':
+      case 'critico':
+        return { color: 'error', icon: <ErrorIcon />, label: 'CRÍTICO' };
+      case 'bajo':
+        return { color: 'warning', icon: <WarningIcon />, label: 'BAJO' };
+      case null:
+        return { color: 'success', icon: <CheckCircleIcon />, label: 'OK' };
+      default:
+        return { color: 'default', icon: null, label: nivel || 'N/A' };
     }
   };
 
   const stockFiltrado = stock.filter(item => {
-    const nombreInsumo = item.insumo_presentacion?.insumo?.nombre_insumo || '';
-    const presentacion = item.insumo_presentacion?.presentacion?.nombre_presentacion || '';
+    const nombreInsumo = item.insumoPresentacion?.insumo?.nombre || '';
+    const presentacion = item.insumoPresentacion?.presentacion?.nombre || '';
     return `${nombreInsumo} ${presentacion}`.toLowerCase().includes(filtro.toLowerCase());
   });
 
@@ -123,10 +130,10 @@ const Stock24h = () => {
 
       {estadisticas && (
         <Grid container spacing={2} mb={3}>
-          <Grid item xs={6} md={3}><StatCard title="Total Medicamentos" value={estadisticas.total_medicamentos || 0} gradient={['#667eea', '#764ba2']} /></Grid>
-          <Grid item xs={6} md={3}><StatCard title="Stock Crítico" value={estadisticas.critico || 0} gradient={['#f093fb', '#f5576c']} /></Grid>
-          <Grid item xs={6} md={3}><StatCard title="Stock Bajo" value={estadisticas.bajo || 0} gradient={['#fa709a', '#fee140']} /></Grid>
-          <Grid item xs={6} md={3}><StatCard title="Stock OK" value={estadisticas.ok || 0} gradient={['#30cfd0', '#330867']} /></Grid>
+          <Grid item xs={6} md={3}><StatCard title="Total Medicamentos" value={estadisticas.totalInsumos || 0} gradient={['#667eea', '#764ba2']} /></Grid>
+          <Grid item xs={6} md={3}><StatCard title="Stock Crítico" value={estadisticas.stockCritico || 0} gradient={['#f093fb', '#f5576c']} /></Grid>
+          <Grid item xs={6} md={3}><StatCard title="Stock Bajo" value={estadisticas.stockBajo || 0} gradient={['#fa709a', '#fee140']} /></Grid>
+          <Grid item xs={6} md={3}><StatCard title="Stock OK" value={estadisticas.stockNormal || 0} gradient={['#30cfd0', '#330867']} /></Grid>
         </Grid>
       )}
 
@@ -143,7 +150,7 @@ const Stock24h = () => {
             <Grid item xs={12} md={6}>
               <Box display="flex" gap={1} flexWrap="wrap">
                 <Chip label="Todos" color={nivelAlerta === 'todos' ? 'primary' : 'default'} onClick={() => setNivelAlerta('todos')} />
-                <Chip label="Crítico" color={nivelAlerta === 'crítico' ? 'error' : 'default'} onClick={() => setNivelAlerta('crítico')} />
+                <Chip label="Crítico" color={nivelAlerta === 'critico' ? 'error' : 'default'} onClick={() => setNivelAlerta('critico')} />
                 <Chip label="Bajo" color={nivelAlerta === 'bajo' ? 'warning' : 'default'} onClick={() => setNivelAlerta('bajo')} />
                 <Chip label="OK" color={nivelAlerta === 'ok' ? 'success' : 'default'} onClick={() => setNivelAlerta('ok')} />
               </Box>
@@ -175,12 +182,12 @@ const Stock24h = () => {
             ) : (
               stockFiltrado.map((item) => {
                 const alertaConfig = getNivelAlertaConfig(item.nivel_alerta);
-                const porcentaje = getPorcentajeStock(item.cantidad_actual, item.cantidad_fija);
+                const porcentaje = getPorcentajeStock(item.stock_actual, item.cantidad_fija);
                 return (
                   <TableRow key={item.id_stock_24h} hover>
                     <TableCell><Typography variant="body2" fontWeight="medium">{item.insumoPresentacion?.insumo?.nombre || 'N/A'}</Typography></TableCell>
                     <TableCell>{item.insumoPresentacion?.presentacion?.nombre || 'N/A'}</TableCell>
-                    <TableCell align="center"><Typography variant="body2" fontWeight="bold">{parseFloat(item.cantidad_actual || 0).toFixed(2)}</Typography></TableCell>
+                    <TableCell align="center"><Typography variant="body2" fontWeight="bold">{parseFloat(item.stock_actual || 0).toFixed(2)}</Typography></TableCell>
                     <TableCell align="center"><Typography variant="body2">{parseFloat(item.cantidad_fija || 0).toFixed(2)}</Typography></TableCell>
                     <TableCell align="center"><Chip label={`${porcentaje}%`} size="small" color={porcentaje < 30 ? 'error' : porcentaje < 50 ? 'warning' : 'success'} /></TableCell>
                     <TableCell align="center"><Chip icon={alertaConfig.icon} label={alertaConfig.label} color={alertaConfig.color} size="small" /></TableCell>

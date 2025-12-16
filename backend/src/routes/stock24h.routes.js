@@ -28,6 +28,9 @@ router.post('/agregar', stock24hController.agregarMedicamentoStock24h);
 // GET /api/stock-24h/reposiciones - Listar reposiciones
 router.get('/reposiciones', stock24hController.listarReposiciones);
 
+// GET /api/stock-24h/reposiciones/:id - Obtener reposición por ID
+router.get('/reposiciones/:id', stock24hController.obtenerReposicionById);
+
 // POST /api/stock-24h/reposiciones - Crear reposición
 router.post('/reposiciones', stock24hController.crearReposicion);
 

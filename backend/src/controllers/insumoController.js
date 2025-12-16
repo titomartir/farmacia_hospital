@@ -451,8 +451,19 @@ const obtenerInventarioTotal = async (req, res) => {
     `, { type: QueryTypes.SELECT });
 
     // Crear mapas para combinar los datos
-    const mapaGeneral = new Map(inventarioGeneral.map(item => [item.id_insumo_presentacion, parseInt(item.stock_general)]));
-    const mapa24h = new Map(stock24h.map(item => [item.id_insumo_presentacion, item.stock_24h]));
+    // Asegurar tipos numéricos para evitar concatenación de strings
+    const mapaGeneral = new Map(
+      inventarioGeneral.map(item => [
+        item.id_insumo_presentacion,
+        Number.parseFloat(item.stock_general ?? 0) || 0
+      ])
+    );
+    const mapa24h = new Map(
+      stock24h.map(item => [
+        item.id_insumo_presentacion,
+        Number.parseFloat(item.stock_24h ?? 0) || 0
+      ])
+    );
 
     // Obtener todos los insumos-presentaciones con filtro de búsqueda
     const whereInsumo = buscar ? {
@@ -489,7 +500,7 @@ const obtenerInventarioTotal = async (req, res) => {
     const inventarioTotal = insumosPresentaciones.map(ip => {
       const stockGeneral = mapaGeneral.get(ip.id_insumo_presentacion) || 0;
       const stock24h = mapa24h.get(ip.id_insumo_presentacion) || 0;
-      const stockTotal = stockGeneral + stock24h;
+      const stockTotal = Number(stockGeneral) + Number(stock24h);
 
       return {
         id_insumo_presentacion: ip.id_insumo_presentacion,
@@ -499,7 +510,7 @@ const obtenerInventarioTotal = async (req, res) => {
         stock_general: stockGeneral,
         stock_24h: stock24h,
         stock_total: stockTotal,
-        tiene_stock_24h: stock24h > 0
+        tiene_stock_24h: Number(stock24h) > 0
       };
     });
 
