@@ -29,7 +29,7 @@ import stock24hService from '../../services/stock24hService';
 import insumoService from '../../services/insumoService';
 
 const NuevaReposicionDialog = ({ open, onClose }) => {
-  const usuario = useSelector(state => state.auth.user);
+  const usuario = useSelector(state => state.auth.usuario);
   const [detalles, setDetalles] = useState([]);
   const [observaciones, setObservaciones] = useState('');
   const [loading, setLoading] = useState(false);
