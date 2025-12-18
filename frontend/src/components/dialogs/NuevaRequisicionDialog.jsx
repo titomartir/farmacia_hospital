@@ -30,6 +30,10 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
     id_servicio: '',
     fecha_solicitud: new Date().toISOString(),
     prioridad: 'normal',
+    numero_cama: '',
+    numero_registro: '',
+    nombre_paciente: '',
+    sexo: '',
     observaciones: '',
     detalles: [],
   });
@@ -76,6 +80,10 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
       id_servicio: '',
       fecha_solicitud: new Date().toISOString(),
       prioridad: 'normal',
+      numero_cama: '',
+      numero_registro: '',
+      nombre_paciente: '',
+      sexo: '',
       observaciones: '',
       detalles: [],
     });
@@ -98,6 +106,10 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
         id_servicio: requisicion.id_servicio || '',
         fecha_solicitud: requisicion.fecha_solicitud || new Date().toISOString(),
         prioridad: requisicion.prioridad || 'normal',
+        numero_cama: requisicion.numero_cama || '',
+        numero_registro: requisicion.numero_registro || '',
+        nombre_paciente: requisicion.nombre_paciente || '',
+        sexo: requisicion.sexo || '',
         observaciones: requisicion.observaciones || '',
         detalles: (requisicion.detalles || []).map(detalle => ({
           id_insumo_presentacion: detalle.id_insumo_presentacion,
@@ -173,6 +185,10 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
         id_servicio: formData.id_servicio,
         fecha_solicitud: formData.fecha_solicitud,
         prioridad: formData.prioridad,
+        numero_cama: formData.numero_cama,
+        numero_registro: formData.numero_registro,
+        nombre_paciente: formData.nombre_paciente,
+        sexo: formData.sexo,
         observaciones: formData.observaciones,
         detalles: formData.detalles.map(d => ({
           id_insumo_presentacion: d.id_insumo_presentacion,
@@ -195,7 +211,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth disableEnforceFocus>
       <DialogTitle>{esEdicion ? 'Editar Requisición' : 'Nueva Requisición'}</DialogTitle>
       <DialogContent>
         {error && (
@@ -205,10 +221,11 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
         )}
 
         <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={3}>
             <TextField
               select
               fullWidth
+              autoFocus
               label="Servicio"
               value={formData.id_servicio}
               onChange={(e) => handleChange('id_servicio', e.target.value)}
@@ -222,7 +239,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={3}>
             <TextField
               fullWidth
               type="datetime-local"
@@ -233,7 +250,51 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Número de Cama"
+              value={formData.numero_cama}
+              onChange={(e) => handleChange('numero_cama', e.target.value)}
+              placeholder="Ej: 101"
+            />
+          </Grid>
+
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Expediente"
+              value={formData.numero_registro}
+              onChange={(e) => handleChange('numero_registro', e.target.value)}
+              placeholder="Ej: EXP-001"
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Nombre del Paciente"
+              value={formData.nombre_paciente}
+              onChange={(e) => handleChange('nombre_paciente', e.target.value)}
+              placeholder="Nombre completo"
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Sexo"
+              value={formData.sexo}
+              onChange={(e) => handleChange('sexo', e.target.value)}
+            >
+              <MenuItem value="">Seleccione...</MenuItem>
+              <MenuItem value="M">Masculino</MenuItem>
+              <MenuItem value="F">Femenino</MenuItem>
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth

@@ -52,10 +52,20 @@ const Requisicion = sequelize.define('requisicion', {
     allowNull: true,
     comment: 'Número o código de cama del paciente'
   },
+  numero_registro: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    comment: 'Número de expediente del paciente'
+  },
   nombre_paciente: {
     type: DataTypes.STRING(200),
     allowNull: true,
     comment: 'Nombre completo del paciente'
+  },
+  sexo: {
+    type: DataTypes.ENUM('M', 'F'),
+    allowNull: true,
+    comment: 'Sexo del paciente'
   },
   observaciones: {
     type: DataTypes.TEXT
