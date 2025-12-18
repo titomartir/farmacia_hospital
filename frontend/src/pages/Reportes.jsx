@@ -99,34 +99,15 @@ import {
   // Exportar a Excel - Consumo por Servicio
   const exportarConsumoServiciosExcel = () => {
     if (!consumoServicios) return;
-    const datos = [];
-    consumoServicios.servicios.forEach(servicio => {
-      servicio.medicamentos.forEach(med => {
-        datos.push({
-          Servicio: servicio.servicio,
-          Medicamento: med.medicamento,
-          Presentación: med.presentacion,
-          'Req. Unidades': med.req_unidades,
-          'Req. Costo': med.req_costo,
-          'Receta Unidades': med.receta_unidades,
-          'Receta Costo': med.receta_costo,
-          'Total Unidades': med.total_unidades,
-          'Total Costo': med.total_costo,
-        });
-      });
-      // Agregar fila de totales del servicio
-      datos.push({
-        Servicio: `TOTAL ${servicio.servicio}`,
-        Medicamento: '',
-        Presentación: '',
-        'Req. Unidades': servicio.totales.req_unidades,
-        'Req. Costo': servicio.totales.req_costo,
-        'Receta Unidades': servicio.totales.receta_unidades,
-        'Receta Costo': servicio.totales.receta_costo,
-        'Total Unidades': servicio.totales.total_unidades,
-        'Total Costo': servicio.totales.total_costo,
-      });
-    });
+    const datos = consumoServicios.servicios.map(servicio => ({
+      Servicio: servicio.servicio,
+      'Req. Unidades': servicio.req_unidades,
+      'Req. Costo': servicio.req_costo,
+      'Receta Unidades': servicio.receta_unidades,
+      'Receta Costo': servicio.receta_costo,
+      'Total Unidades': servicio.total_unidades,
+      'Total Costo': servicio.total_costo,
+    }));
     const ws = XLSX.utils.json_to_sheet(datos);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'ConsumoServicios');
@@ -140,43 +121,20 @@ import {
     doc.text('Reporte: Consumo por Servicio', 14, 14);
     doc.text(`Período: ${consumoServicios.periodo.fecha_desde} al ${consumoServicios.periodo.fecha_hasta}`, 14, 22);
     
-    const datos = [];
-    consumoServicios.servicios.forEach(servicio => {
-      datos.push([
-        `SERVICIO: ${servicio.servicio}`,
-        '', '', '', '', '', '', '', ''
-      ]);
-      servicio.medicamentos.forEach(med => {
-        datos.push([
-          med.medicamento,
-          med.presentacion,
-          med.req_unidades,
-          med.req_costo,
-          med.receta_unidades,
-          med.receta_costo,
-          med.total_unidades,
-          med.total_costo,
-          ''
-        ]);
-      });
-      datos.push([
-        `TOTAL: ${servicio.servicio}`,
-        '',
-        servicio.totales.req_unidades,
-        servicio.totales.req_costo,
-        servicio.totales.receta_unidades,
-        servicio.totales.receta_costo,
-        servicio.totales.total_unidades,
-        servicio.totales.total_costo,
-        ''
-      ]);
-      datos.push(['', '', '', '', '', '', '', '', '']);
-    });
+    const datos = consumoServicios.servicios.map(servicio => [
+      servicio.servicio,
+      servicio.req_unidades,
+      servicio.req_costo,
+      servicio.receta_unidades,
+      servicio.receta_costo,
+      servicio.total_unidades,
+      servicio.total_costo
+    ]);
     
     doc.autoTable({
       startY: 28,
       head: [[
-        'Medicamento', 'Presentación', 'Req. Unidades', 'Req. Costo',
+        'Servicio', 'Req. Unidades', 'Req. Costo',
         'Receta Unidades', 'Receta Costo', 'Total Unidades', 'Total Costo'
       ]],
       body: datos,
@@ -463,55 +421,34 @@ const Reportes = () => {
                 <Box>
                   <Typography variant="subtitle1" gutterBottom>Período: {consumoServicios.periodo.fecha_desde} al {consumoServicios.periodo.fecha_hasta}</Typography>
                   
-                  {consumoServicios.servicios.map((servicio, servicioIdx) => (
-                    <Box key={servicioIdx} sx={{ mb: 4 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: theme.palette.primary.main }}>
-                        {servicio.servicio}
-                      </Typography>
-                      
-                      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
-                              <TableCell sx={{ fontWeight: 600 }}>Medicamento</TableCell>
-                              <TableCell sx={{ fontWeight: 600 }}>Presentación</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Req. Unidades</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Req. Costo</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Receta Unidades</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Receta Costo</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Total Unidades</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>Total Costo</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {servicio.medicamentos.map((med, medIdx) => (
-                              <TableRow key={medIdx} hover>
-                                <TableCell>{med.medicamento}</TableCell>
-                                <TableCell>{med.presentacion}</TableCell>
-                                <TableCell align="right">{formatearNumero(med.req_unidades)}</TableCell>
-                                <TableCell align="right">{formatearMoneda(med.req_costo)}</TableCell>
-                                <TableCell align="right">{formatearNumero(med.receta_unidades)}</TableCell>
-                                <TableCell align="right">{formatearMoneda(med.receta_costo)}</TableCell>
-                                <TableCell align="right">{formatearNumero(med.total_unidades)}</TableCell>
-                                <TableCell align="right">{formatearMoneda(med.total_costo)}</TableCell>
-                              </TableRow>
-                            ))}
-                            
-                            {/* Fila de totales por servicio */}
-                            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
-                              <TableCell colSpan={2} sx={{ fontWeight: 600 }}>TOTAL: {servicio.servicio}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearNumero(servicio.totales.req_unidades)}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearMoneda(servicio.totales.req_costo)}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearNumero(servicio.totales.receta_unidades)}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearMoneda(servicio.totales.receta_costo)}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearNumero(servicio.totales.total_unidades)}</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearMoneda(servicio.totales.total_costo)}</TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </Box>
-                  ))}
+                  <TableContainer component={Paper} variant="outlined" sx={{ mt: 2, borderRadius: 2 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+                          <TableCell sx={{ fontWeight: 600 }}>Servicio</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Req. Unidades</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Req. Costo</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Receta Unidades</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Receta Costo</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Total Unidades</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600 }}>Total Costo</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {consumoServicios.servicios.map((servicio, idx) => (
+                          <TableRow key={idx} hover>
+                            <TableCell>{servicio.servicio}</TableCell>
+                            <TableCell align="right">{formatearNumero(servicio.req_unidades)}</TableCell>
+                            <TableCell align="right">{formatearMoneda(servicio.req_costo)}</TableCell>
+                            <TableCell align="right">{formatearNumero(servicio.receta_unidades)}</TableCell>
+                            <TableCell align="right">{formatearMoneda(servicio.receta_costo)}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearNumero(servicio.total_unidades)}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600 }}>{formatearMoneda(servicio.total_costo)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </Box>
               )}
             </Box>

@@ -261,9 +261,6 @@ const consumoPorServicio = async (req, res) => {
       SELECT 
         s.id_servicio,
         s.nombre_servicio as servicio,
-        i.id_insumo,
-        i.nombre as medicamento,
-        p.nombre as presentacion,
         SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN dr.cantidad_autorizada ELSE 0 END) as req_unidades,
         SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'requisicion' THEN (dr.cantidad_autorizada * COALESCE(NULLIF(dr.precio_unitario, 0), l.precio_lote, 0)) ELSE 0 END) as req_costo,
         SUM(CASE WHEN COALESCE(i.subclasificacion, 'requisicion') = 'receta' THEN dr.cantidad_autorizada ELSE 0 END) as receta_unidades,
@@ -276,64 +273,33 @@ const consumoPorServicio = async (req, res) => {
       INNER JOIN detalle_requisicion dr ON r.id_requisicion = dr.id_requisicion
       INNER JOIN insumo_presentacion ip ON dr.id_insumo_presentacion = ip.id_insumo_presentacion
       INNER JOIN insumo i ON ip.id_insumo = i.id_insumo
-      INNER JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
       LEFT JOIN lote_inventario l ON dr.id_lote = l.id_lote
       
       WHERE r.fecha_solicitud BETWEEN :fecha_desde AND :fecha_hasta
         AND r.estado IN ('aprobada', 'entregada')
       
-      GROUP BY s.id_servicio, s.nombre_servicio, i.id_insumo, i.nombre, i.subclasificacion, p.nombre
-      ORDER BY s.nombre_servicio ASC, i.nombre ASC
+      GROUP BY s.id_servicio, s.nombre_servicio
+      ORDER BY s.nombre_servicio ASC
     `;
 
-    const resultados = await sequelize.query(query, {
+    const servicios = await sequelize.query(query, {
       replacements: { fecha_desde, fecha_hasta },
       type: QueryTypes.SELECT
-    });
-
-    // Agrupar por servicio
-    const servicios = {};
-    resultados.forEach(item => {
-      if (!servicios[item.servicio]) {
-        servicios[item.servicio] = {
-          servicio: item.servicio,
-          medicamentos: [],
-          totales: {
-            req_unidades: 0,
-            req_costo: 0,
-            receta_unidades: 0,
-            receta_costo: 0,
-            total_unidades: 0,
-            total_costo: 0
-          }
-        };
-      }
-
-      servicios[item.servicio].medicamentos.push({
-        medicamento: item.medicamento,
-        presentacion: item.presentacion,
-        req_unidades: parseFloat(item.req_unidades || 0),
-        req_costo: parseFloat(item.req_costo || 0),
-        receta_unidades: parseFloat(item.receta_unidades || 0),
-        receta_costo: parseFloat(item.receta_costo || 0),
-        total_unidades: parseFloat(item.total_unidades || 0),
-        total_costo: parseFloat(item.total_costo || 0)
-      });
-
-      // Sumar totales por servicio
-      servicios[item.servicio].totales.req_unidades += parseFloat(item.req_unidades || 0);
-      servicios[item.servicio].totales.req_costo += parseFloat(item.req_costo || 0);
-      servicios[item.servicio].totales.receta_unidades += parseFloat(item.receta_unidades || 0);
-      servicios[item.servicio].totales.receta_costo += parseFloat(item.receta_costo || 0);
-      servicios[item.servicio].totales.total_unidades += parseFloat(item.total_unidades || 0);
-      servicios[item.servicio].totales.total_costo += parseFloat(item.total_costo || 0);
     });
 
     res.json({
       success: true,
       data: {
         periodo: { fecha_desde, fecha_hasta },
-        servicios: Object.values(servicios)
+        servicios: servicios.map(s => ({
+          servicio: s.servicio,
+          req_unidades: parseFloat(s.req_unidades || 0),
+          req_costo: parseFloat(s.req_costo || 0),
+          receta_unidades: parseFloat(s.receta_unidades || 0),
+          receta_costo: parseFloat(s.receta_costo || 0),
+          total_unidades: parseFloat(s.total_unidades || 0),
+          total_costo: parseFloat(s.total_costo || 0)
+        }))
       }
     });
 
