@@ -15,6 +15,9 @@ router.get('/:id', consolidadoController.obtenerConsolidadoPorId);
 // POST /api/consolidados - Crear nuevo
 router.post('/', consolidadoController.crearConsolidado);
 
+// PUT /api/consolidados/:id - Actualizar consolidado (solo en estado activo)
+router.put('/:id', consolidadoController.actualizarConsolidado);
+
 // POST /api/consolidados/:id/aprobar - Aprobar consolidado
 router.post('/:id/aprobar', consolidadoController.aprobarConsolidado);
 

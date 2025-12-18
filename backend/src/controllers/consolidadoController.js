@@ -496,10 +496,113 @@ const entregarConsolidado = async (req, res) => {
   }
 };
 
+// Actualizar consolidado (solo en estado 'activo')
+const actualizarConsolidado = async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { id_servicio, fecha_consolidado, turno, observaciones, detalles } = req.body;
+
+    logger.info(`Actualizando consolidado ${id}:`, { id_servicio, turno, detalles_count: detalles?.length });
+
+    const consolidado = await Consolidado.findByPk(id, { transaction: t });
+
+    if (!consolidado) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Consolidado no encontrado' });
+    }
+
+    if (consolidado.estado !== 'activo') {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Solo se pueden editar consolidados en estado activo' });
+    }
+
+    if (!detalles || detalles.length === 0) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Debe proporcionar al menos un detalle' });
+    }
+
+    // Actualizar datos principales
+    await consolidado.update({
+      id_servicio,
+      fecha_consolidado,
+      turno,
+      observaciones
+    }, { transaction: t });
+
+    // Eliminar detalles anteriores
+    await DetalleConsolidado.destroy({ where: { id_consolidado: id }, transaction: t });
+
+    // Crear nuevos detalles
+    let total_medicamentos = 0;
+    let costo_total = 0;
+
+    for (const detalle of detalles) {
+      const insumoPresentacion = await InsumoPresentacion.findByPk(
+        detalle.id_insumo_presentacion,
+        { transaction: t }
+      );
+
+      if (!insumoPresentacion) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: `Insumo no encontrado: ${detalle.id_insumo_presentacion}` });
+      }
+
+      await DetalleConsolidado.create({
+        id_consolidado: id,
+        id_insumo_presentacion: detalle.id_insumo_presentacion,
+        numero_cama: detalle.numero_cama,
+        nombre_paciente: detalle.nombre_paciente,
+        numero_registro: detalle.numero_registro,
+        cantidad: detalle.cantidad,
+        precio_unitario: detalle.precio_unitario || 0,
+        observaciones: detalle.observaciones
+      }, { transaction: t });
+
+      total_medicamentos += 1;
+      costo_total += parseFloat(detalle.cantidad) * parseFloat(detalle.precio_unitario || 0);
+    }
+
+    // Actualizar totales
+    await consolidado.update({
+      total_medicamentos,
+      costo_total
+    }, { transaction: t });
+
+    await t.commit();
+
+    const consolidadoActualizado = await Consolidado.findByPk(id, {
+      include: [
+        { model: Usuario, as: 'usuario', include: [{ model: Personal, as: 'personal' }] },
+        { model: Servicio, as: 'servicio' },
+        {
+          model: DetalleConsolidado,
+          as: 'detalles',
+          include: [
+            { model: InsumoPresentacion, as: 'insumoPresentacion', include: [
+              { model: Insumo, as: 'insumo' },
+              { model: Presentacion, as: 'presentacion' }
+            ]}
+          ]
+        }
+      ]
+    });
+
+    logger.info(`Consolidado actualizado: ${id}`);
+    res.json({ success: true, message: 'Consolidado actualizado correctamente', data: consolidadoActualizado });
+  } catch (error) {
+    await t.rollback();
+    logger.error('Error al actualizar consolidado:', error);
+    res.status(500).json({ success: false, message: 'Error al actualizar consolidado', error: error.message });
+  }
+};
+
 module.exports = {
   listarConsolidados,
   obtenerConsolidadoPorId,
   crearConsolidado,
+  actualizarConsolidado,
   aprobarConsolidado,
   cerrarConsolidado,
   anularConsolidado,

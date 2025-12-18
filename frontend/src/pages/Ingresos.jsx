@@ -230,7 +230,7 @@ const Ingresos = () => {
                 <InputLabel>Tipo</InputLabel>
                 <Select value={filtros.tipo_ingreso} onChange={(e) => handleFiltroChange('tipo_ingreso', e.target.value)} label="Tipo">
                   <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="COMPRA">Compra</MenuItem>
+                  <MenuItem value="COMPRA">Ingreso</MenuItem>
                   <MenuItem value="DEVOLUCION">Devolución</MenuItem>
                 </Select>
               </FormControl>

@@ -183,7 +183,7 @@ const Requisiciones = () => {
                 <Select value={filtros.servicio} onChange={(e) => handleFiltroChange('servicio', e.target.value)} label="Servicio">
                   <MenuItem value="">Todos</MenuItem>
                   {servicios.map((servicio) => (
-                    <MenuItem key={servicio.id_servicio} value={servicio.id_servicio}>{servicio.nombre}</MenuItem>
+                    <MenuItem key={servicio.id_servicio} value={servicio.id_servicio}>{servicio.nombre_servicio}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -254,7 +254,11 @@ const Requisiciones = () => {
         </Table>
       </TableContainer>
 
-      <NuevaRequisicionDialog open={dialogNueva} onClose={() => setDialogNueva(false)} onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }} />
+      <NuevaRequisicionDialog 
+        open={dialogNueva} 
+        onClose={() => setDialogNueva(false)} 
+        onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }}
+      />
       {requisicionSeleccionada && (
         <>
           <AprobarRequisicionDialog open={dialogAprobar} requisicion={requisicionSeleccionada} onClose={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); }} onSuccess={() => { setDialogAprobar(false); setRequisicionSeleccionada(null); cargarRequisiciones(); }} />

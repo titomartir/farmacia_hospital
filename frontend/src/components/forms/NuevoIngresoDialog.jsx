@@ -234,7 +234,7 @@ const NuevoIngresoDialog = ({ open, onClose }) => {
                   onChange={(e) => handleChange('tipo_ingreso', e.target.value)}
                   label="Tipo de Ingreso"
                 >
-                  <MenuItem value="COMPRA">Compra</MenuItem>
+                  <MenuItem value="COMPRA">Ingreso</MenuItem>
                   <MenuItem value="DONACION">Donación</MenuItem>
                   <MenuItem value="TRANSFERENCIA">Transferencia</MenuItem>
                 </Select>

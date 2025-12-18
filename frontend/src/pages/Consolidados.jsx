@@ -8,6 +8,7 @@ import {
   Add as AddIcon, Visibility as VisibilityIcon, CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon, Refresh as RefreshIcon, Description as DescriptionIcon,
   Print as PrintIcon, FilterList as FilterListIcon, LocalShipping as LocalShippingIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import consolidadoService from '../services/consolidadoService';
 import servicioService from '../services/servicioService';
@@ -80,6 +81,11 @@ const Consolidados = () => {
   const handleEntregar = (consolidado) => {
     setConsolidadoSeleccionado(consolidado);
     setDialogEntregar(true);
+  };
+  
+  const handleEditar = (consolidado) => {
+    setConsolidadoSeleccionado(consolidado);
+    setDialogNuevo(true);
   };
   
   const handleAprobar = async (consolidado) => {
@@ -205,6 +211,7 @@ const Consolidados = () => {
                     <Tooltip title="Ver detalles"><IconButton size="small" onClick={() => handleVerDetalle(cons)}><VisibilityIcon /></IconButton></Tooltip>
                     {cons.estado === 'activo' && (
                       <>
+                        <Tooltip title="Editar"><IconButton size="small" color="warning" onClick={() => handleEditar(cons)}><EditIcon /></IconButton></Tooltip>
                         <Tooltip title="Aprobar"><IconButton size="small" color="success" onClick={() => handleAprobar(cons)}><CheckCircleIcon /></IconButton></Tooltip>
                         <Tooltip title="Anular"><IconButton size="small" color="error" onClick={() => handleAnular(cons)}><CancelIcon /></IconButton></Tooltip>
                       </>
@@ -224,7 +231,19 @@ const Consolidados = () => {
         </Table>
       </TableContainer>
 
-      <NuevoConsolidadoDialog open={dialogNuevo} onClose={() => setDialogNuevo(false)} onSuccess={() => { setDialogNuevo(false); cargarConsolidados(); }} />
+      <NuevoConsolidadoDialog 
+        open={dialogNuevo} 
+        onClose={() => {
+          setDialogNuevo(false);
+          setConsolidadoSeleccionado(null);
+        }} 
+        onSuccess={() => { 
+          setDialogNuevo(false);
+          setConsolidadoSeleccionado(null);
+          cargarConsolidados();
+        }} 
+        consolidadoEditar={consolidadoSeleccionado}
+      />
       {consolidadoSeleccionado && (
         <>
           <DetalleConsolidadoDialog open={dialogDetalle} consolidado={consolidadoSeleccionado} onClose={() => { setDialogDetalle(false); setConsolidadoSeleccionado(null); }} />

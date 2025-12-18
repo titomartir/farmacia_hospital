@@ -37,11 +37,12 @@ import insumoService from '../../services/insumoService';
 import consolidadoService from '../../services/consolidadoService';
 import { authService } from '../../services/authService';
 
-const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
+const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = null }) => {
   const [servicios, setServicios] = useState([]);
   const [insumos, setInsumos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [esEdicion, setEsEdicion] = useState(false);
 
   // Encabezado del consolidado
   const [formData, setFormData] = useState({
@@ -70,9 +71,13 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
     if (open) {
       cargarServicios();
       cargarInsumos();
-      resetForm();
+      if (consolidadoEditar && consolidadoEditar.id_consolidado) {
+        cargarConsolidadoParaEdicion();
+      } else {
+        resetForm();
+      }
     }
-  }, [open]);
+  }, [open, consolidadoEditar?.id_consolidado]);
 
   const cargarServicios = async () => {
     try {
@@ -117,6 +122,93 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
       }))
     );
     setError('');
+    setEsEdicion(false);
+  };
+
+  const cargarConsolidadoParaEdicion = async () => {
+    try {
+      setLoading(true);
+      const consolidado = await consolidadoService.obtenerConsolidado(consolidadoEditar.id_consolidado);
+      console.log('Consolidado cargado para edición:', consolidado);
+      
+      setFormData({
+        id_servicio: consolidado.id_servicio || '',
+        fecha_consolidado: consolidado.fecha_consolidado || new Date().toISOString(),
+        turno: consolidado.turno || 'diurno',
+        encargado: consolidado.encargado || '',
+        observaciones: consolidado.observaciones || '',
+      });
+
+      // Reconstruir medicamentos y matriz desde detalles
+      // Crear un mapa de id_insumo -> todas las presentaciones usadas
+      const medicamentosMap = {};
+      const datosMap = {};
+
+      if (consolidado.detalles && consolidado.detalles.length > 0) {
+        consolidado.detalles.forEach(detalle => {
+          const insumoData = detalle.insumoPresentacion?.insumo;
+          if (insumoData && insumoData.id_insumo) {
+            // Almacenar cada medicamento con su presentación específica
+            if (!medicamentosMap[insumoData.id_insumo]) {
+              medicamentosMap[insumoData.id_insumo] = {
+                id_insumo: insumoData.id_insumo,
+                id_insumo_presentacion: detalle.id_insumo_presentacion,
+                nombre: insumoData.nombre || '',
+                presentaciones: detalle.insumoPresentacion ? [detalle.insumoPresentacion] : [],
+                precio_unitario: detalle.precio_unitario || 0
+              };
+            }
+          }
+
+          const cama = detalle.numero_cama;
+          if (!datosMap[cama]) {
+            datosMap[cama] = {
+              numero_cama: cama,
+              numero_expediente: detalle.numero_registro || '',
+              nombre_paciente: detalle.nombre_paciente || '',
+              sexo: detalle.sexo || '',
+              medicamentos: {}
+            };
+          }
+          
+          if (insumoData && insumoData.id_insumo) {
+            datosMap[cama].medicamentos[insumoData.id_insumo] = detalle.cantidad;
+          }
+        });
+      }
+
+      setMedicamentosColumnas(Object.values(medicamentosMap));
+      
+      const nuevaMatriz = Array(30).fill(null).map((_, idx) => {
+        const cama = idx + 1;
+        return datosMap[cama] || {
+          numero_cama: cama,
+          numero_expediente: '',
+          nombre_paciente: '',
+          sexo: '',
+          medicamentos: {}
+        };
+      });
+      setDatosMatriz(nuevaMatriz);
+      setEsEdicion(true);
+      setError('');
+    } catch (err) {
+      console.error('Error cargando consolidado:', err);
+      setError('Error al cargar consolidado para editar');
+      setEsEdicion(false);
+      // Ensure datosMatriz is initialized even if load fails
+      setDatosMatriz(
+        Array(30).fill(null).map((_, idx) => ({
+          numero_cama: idx + 1,
+          numero_expediente: '',
+          nombre_paciente: '',
+          sexo: '',
+          medicamentos: {},
+        }))
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAgregarMedicamento = (insumo) => {
@@ -199,9 +291,19 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
   };
 
   const calcularTotalPorMedicamento = (idInsumo) => {
-    return datosMatriz.reduce((sum, fila) => {
-      return sum + (fila.medicamentos[idInsumo] || 0);
-    }, 0);
+    if (!idInsumo || !datosMatriz) {
+      console.warn('calcularTotalPorMedicamento: idInsumo o datosMatriz faltando', { idInsumo, datosMatriz: !!datosMatriz });
+      return 0;
+    }
+    try {
+      const total = datosMatriz.reduce((sum, fila) => {
+        return sum + (parseFloat(fila?.medicamentos?.[idInsumo]) || 0);
+      }, 0);
+      return isNaN(total) ? 0 : total;
+    } catch (err) {
+      console.error('Error calculando total:', err);
+      return 0;
+    }
   };
 
   const handleGuardar = async () => {
@@ -256,10 +358,18 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
         detalles,
       };
 
-      await consolidadoService.crearConsolidado(data);
+      console.log('Enviando datos al backend:', data);
+      console.log('Medicamentos columnas:', medicamentosColumnas);
+      console.log('Detalles siendo enviados:', detalles);
+
+      if (esEdicion && consolidadoEditar) {
+        await consolidadoService.actualizarConsolidado(consolidadoEditar.id_consolidado, data);
+      } else {
+        await consolidadoService.crearConsolidado(data);
+      }
       onSuccess();
     } catch (err) {
-      setError(err.message || 'Error al crear consolidado');
+      setError(err.message || `Error al ${esEdicion ? 'actualizar' : 'crear'} consolidado`);
     } finally {
       setLoading(false);
     }
@@ -267,7 +377,7 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-      <DialogTitle>Nuevo Consolidado de Medicamentos</DialogTitle>
+      <DialogTitle>{esEdicion ? 'Editar Consolidado de Medicamentos' : 'Nuevo Consolidado de Medicamentos'}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
@@ -483,11 +593,14 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
                   <TableCell colSpan={4} sx={{ fontWeight: 'bold' }}>
                     TOTALES
                   </TableCell>
-                  {medicamentosColumnas.map((med) => (
-                    <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold' }}>
-                      {calcularTotalPorMedicamento(med.id_insumo).toFixed(1)}
-                    </TableCell>
-                  ))}
+                  {medicamentosColumnas.map((med) => {
+                    const total = calcularTotalPorMedicamento(med.id_insumo);
+                    return (
+                      <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold' }}>
+                        {(total || 0).toFixed(1)}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               </TableBody>
             </Table>
@@ -505,7 +618,7 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess }) => {
           disabled={loading}
           startIcon={<SaveIcon />}
         >
-          {loading ? 'Guardando...' : 'Guardar Consolidado'}
+          {loading ? (esEdicion ? 'Actualizando...' : 'Guardando...') : (esEdicion ? 'Actualizar Consolidado' : 'Guardar Consolidado')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -225,7 +225,7 @@ const Compras = () => {
                     value={formData.tipo_ingreso}
                     onChange={(e) => setFormData({ ...formData, tipo_ingreso: e.target.value })}
                   >
-                    <MenuItem value="COMPRA">Compra</MenuItem>
+                    <MenuItem value="COMPRA">Ingreso</MenuItem>
                     <MenuItem value="DEVOLUCION">Devolución</MenuItem>
                   </TextField>
                 </Grid>
