@@ -14,6 +14,9 @@ router.get('/:id', requisicionController.obtenerRequisicionPorId);
 // POST /api/requisiciones - Crear nueva
 router.post('/', requisicionController.crearRequisicion);
 
+// PUT /api/requisiciones/:id - Actualizar requisición (solo en estado pendiente)
+router.put('/:id', requisicionController.actualizarRequisicion);
+
 // POST /api/requisiciones/:id/aprobar - Aprobar
 router.post('/:id/aprobar', requisicionController.aprobarRequisicion);
 

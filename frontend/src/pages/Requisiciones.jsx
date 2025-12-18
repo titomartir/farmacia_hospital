@@ -7,7 +7,7 @@ import {
 import {
   Add as AddIcon, Visibility as VisibilityIcon, CheckCircle as CheckCircleIcon,
   LocalShipping as LocalShippingIcon, Cancel as CancelIcon, Refresh as RefreshIcon,
-  Print as PrintIcon, FilterList as FilterListIcon,
+  Print as PrintIcon, FilterList as FilterListIcon, Edit as EditIcon,
 } from '@mui/icons-material';
 import requisicionService from '../services/requisicionService';
 import api from '../services/api';
@@ -80,6 +80,11 @@ const Requisiciones = () => {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleEditar = (requisicion) => {
+    setRequisicionSeleccionada(requisicion);
+    setDialogNueva(true);
   };
   
   const handleAprobar = async (requisicion) => {
@@ -239,6 +244,7 @@ const Requisiciones = () => {
                     <Tooltip title="Ver detalles"><IconButton size="small" onClick={() => handleVerDetalle(req)}><VisibilityIcon /></IconButton></Tooltip>
                     {req.estado === 'pendiente' && (
                       <>
+                        <Tooltip title="Editar"><IconButton size="small" color="warning" onClick={() => handleEditar(req)}><EditIcon /></IconButton></Tooltip>
                         <Tooltip title="Aprobar"><IconButton size="small" color="success" onClick={() => handleAprobar(req)}><CheckCircleIcon /></IconButton></Tooltip>
                         <Tooltip title="Rechazar"><IconButton size="small" color="error" onClick={() => handleRechazar(req)}><CancelIcon /></IconButton></Tooltip>
                       </>
@@ -256,8 +262,9 @@ const Requisiciones = () => {
 
       <NuevaRequisicionDialog 
         open={dialogNueva} 
-        onClose={() => setDialogNueva(false)} 
-        onSuccess={() => { setDialogNueva(false); cargarRequisiciones(); }}
+        onClose={() => { setDialogNueva(false); setRequisicionSeleccionada(null); }} 
+        onSuccess={() => { setDialogNueva(false); setRequisicionSeleccionada(null); cargarRequisiciones(); }}
+        requisicionEditar={requisicionSeleccionada}
       />
       {requisicionSeleccionada && (
         <>

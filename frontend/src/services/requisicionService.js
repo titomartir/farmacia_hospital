@@ -25,6 +25,12 @@ const requisicionService = {
     return response.data.data;
   },
 
+  // Actualizar requisición
+  async actualizarRequisicion(id, data) {
+    const response = await api.put(`/requisiciones/${id}`, data);
+    return response.data.data;
+  },
+
   // Aprobar requisición
   async aprobarRequisicion(id, detallesAutorizados) {
     const response = await api.post(`/requisiciones/${id}/aprobar`, {

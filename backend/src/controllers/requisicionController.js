@@ -239,6 +239,96 @@ const crearRequisicion = async (req, res) => {
   }
 };
 
+// Actualizar requisición
+const actualizarRequisicion = async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { id_servicio, fecha_solicitud, prioridad, observaciones, detalles } = req.body;
+
+    logger.info(`Actualizando requisición ${id}:`, { id_servicio, prioridad, detalles_count: detalles?.length });
+
+    const requisicion = await Requisicion.findByPk(id, { transaction: t });
+
+    if (!requisicion) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Requisición no encontrada' });
+    }
+
+    if (requisicion.estado !== 'pendiente') {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Solo se pueden editar requisiciones en estado pendiente' });
+    }
+
+    if (!detalles || detalles.length === 0) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Debe proporcionar al menos un detalle' });
+    }
+
+    // Actualizar datos principales
+    await requisicion.update({
+      id_servicio,
+      fecha_solicitud,
+      prioridad,
+      observaciones
+    }, { transaction: t });
+
+    // Eliminar detalles anteriores
+    await DetalleRequisicion.destroy({ where: { id_requisicion: id }, transaction: t });
+
+    // Crear nuevos detalles
+    for (const detalle of detalles) {
+      const insumoPresentacion = await InsumoPresentacion.findByPk(
+        detalle.id_insumo_presentacion,
+        { transaction: t }
+      );
+
+      if (!insumoPresentacion) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: `Insumo no encontrado: ${detalle.id_insumo_presentacion}` });
+      }
+
+      await DetalleRequisicion.create({
+        id_requisicion: id,
+        id_insumo_presentacion: detalle.id_insumo_presentacion,
+        cantidad_solicitada: detalle.cantidad_solicitada,
+        observaciones: detalle.observaciones
+      }, { transaction: t });
+    }
+
+    await t.commit();
+
+    const requisicionActualizada = await Requisicion.findByPk(id, {
+      include: [
+        { model: Usuario, as: 'usuarioSolicita', include: [{ model: Personal, as: 'personal' }] },
+        { model: Servicio, as: 'servicio' },
+        {
+          model: DetalleRequisicion,
+          as: 'detalles',
+          include: [
+            { model: InsumoPresentacion, as: 'insumoPresentacion', include: [
+              { model: Insumo, as: 'insumo' },
+              { model: Presentacion, as: 'presentacion' }
+            ]}
+          ]
+        }
+      ]
+    });
+
+    logger.info(`Requisición actualizada: ${id}`);
+    res.json({ success: true, message: 'Requisición actualizada correctamente', data: requisicionActualizada });
+  } catch (error) {
+    await t.rollback();
+    logger.error('Error al actualizar requisición:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar requisición',
+      error: error.message
+    });
+  }
+};
+
 // Aprobar requisición
 const aprobarRequisicion = async (req, res) => {
   const t = await sequelize.transaction();
@@ -568,6 +658,7 @@ module.exports = {
   listarRequisiciones,
   obtenerRequisicionPorId,
   crearRequisicion,
+  actualizarRequisicion,
   aprobarRequisicion,
   entregarRequisicion,
   rechazarRequisicion

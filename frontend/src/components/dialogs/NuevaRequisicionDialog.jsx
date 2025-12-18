@@ -25,7 +25,7 @@ import requisicionService from '../../services/requisicionService';
 import servicioService from '../../services/servicioService';
 import insumoService from '../../services/insumoService';
 
-const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
+const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = null }) => {
   const [formData, setFormData] = useState({
     id_servicio: '',
     fecha_solicitud: new Date().toISOString(),
@@ -38,6 +38,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
   const [insumos, setInsumos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [esEdicion, setEsEdicion] = useState(false);
 
   // Item actual para agregar
   const [itemActual, setItemActual] = useState({
@@ -49,9 +50,13 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
   useEffect(() => {
     if (open) {
       cargarCatalogos();
-      resetForm();
+      if (requisicionEditar && requisicionEditar.id_requisicion) {
+        cargarRequisicionParaEdicion();
+      } else {
+        resetForm();
+      }
     }
-  }, [open]);
+  }, [open, requisicionEditar?.id_requisicion]);
 
   const cargarCatalogos = async () => {
     try {
@@ -80,6 +85,36 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
       observaciones: '',
     });
     setError('');
+    setEsEdicion(false);
+  };
+
+  const cargarRequisicionParaEdicion = async () => {
+    try {
+      setLoading(true);
+      const requisicion = await requisicionService.obtenerRequisicion(requisicionEditar.id_requisicion);
+      console.log('Requisición cargada para edición:', requisicion);
+      
+      setFormData({
+        id_servicio: requisicion.id_servicio || '',
+        fecha_solicitud: requisicion.fecha_solicitud || new Date().toISOString(),
+        prioridad: requisicion.prioridad || 'normal',
+        observaciones: requisicion.observaciones || '',
+        detalles: (requisicion.detalles || []).map(detalle => ({
+          id_insumo_presentacion: detalle.id_insumo_presentacion,
+          insumo: detalle.insumoPresentacion,
+          cantidad_solicitada: detalle.cantidad_solicitada || 0,
+          observaciones: detalle.observaciones || ''
+        }))
+      });
+      setEsEdicion(true);
+      setError('');
+    } catch (err) {
+      console.error('Error cargando requisición:', err);
+      setError('Error al cargar requisición para editar');
+      setEsEdicion(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (campo, valor) => {
@@ -146,10 +181,14 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
         })),
       };
 
-      await requisicionService.crearRequisicion(payload);
+      if (esEdicion && requisicionEditar) {
+        await requisicionService.actualizarRequisicion(requisicionEditar.id_requisicion, payload);
+      } else {
+        await requisicionService.crearRequisicion(payload);
+      }
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al crear requisición');
+      setError(err.response?.data?.message || `Error al ${esEdicion ? 'actualizar' : 'crear'} requisición`);
     } finally {
       setLoading(false);
     }
@@ -157,7 +196,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Nueva Requisición</DialogTitle>
+      <DialogTitle>{esEdicion ? 'Editar Requisición' : 'Nueva Requisición'}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -329,7 +368,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess }) => {
           variant="contained"
           disabled={loading || formData.detalles.length === 0}
         >
-          {loading ? 'Guardando...' : 'Crear Requisición'}
+          {loading ? (esEdicion ? 'Actualizando...' : 'Guardando...') : (esEdicion ? 'Actualizar Requisición' : 'Crear Requisición')}
         </Button>
       </DialogActions>
     </Dialog>
