@@ -1,0 +1,9 @@
+✅ Credenciales ACTUALIZADAS de pgAdmin
+URL: http://localhost:5050 Email: admin@farmacia.com Password: admin123
+Las variables de entorno ahora están correctamente configuradas como puedes ver en la salida. Una vez que entres a pgAdmin con estas credenciales, podrás conectarte a la base de datos PostgreSQL usando: Para crear la conexión al servidor PostgreSQL dentro de pgAdmin:
+Host: farmacia_db (nombre del contenedor en la red Docker)
+Port: 5432
+Database: farmacia_dinamica
+Username: postgres
+Password: postgres
+Prueba ahora accediendo a http://localhost:5050 con las nuevas credenciales.

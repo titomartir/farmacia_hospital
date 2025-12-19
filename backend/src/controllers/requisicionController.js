@@ -156,6 +156,8 @@ const crearRequisicion = async (req, res) => {
       detalles 
     } = req.body;
 
+    logger.info('📥 crearRequisicion - req.body:', JSON.stringify(req.body, null, 2));
+
     const id_usuario_solicita = req.usuario.id_usuario;
 
     if (!detalles || detalles.length === 0) {
@@ -181,6 +183,7 @@ const crearRequisicion = async (req, res) => {
 
     // Crear detalles
     for (const detalle of detalles) {
+      logger.info(`📝 Guardando detalle: cama=${detalle.numero_cama}, expediente=${detalle.numero_expediente}, paciente=${detalle.nombre_paciente}, sexo=${detalle.sexo}`);
       await DetalleRequisicion.create({
         id_requisicion: nuevaRequisicion.id_requisicion,
         id_insumo_presentacion: detalle.id_insumo_presentacion,
@@ -289,10 +292,16 @@ const actualizarRequisicion = async (req, res) => {
         return res.status(400).json({ success: false, message: `Insumo no encontrado: ${detalle.id_insumo_presentacion}` });
       }
 
+      logger.info(`📝 Guardando detalle en actualización: cama=${detalle.numero_cama}, expediente=${detalle.numero_expediente}, paciente=${detalle.nombre_paciente}, sexo=${detalle.sexo}`);
+
       await DetalleRequisicion.create({
         id_requisicion: id,
         id_insumo_presentacion: detalle.id_insumo_presentacion,
         cantidad_solicitada: detalle.cantidad_solicitada,
+        numero_cama: detalle.numero_cama,
+        numero_expediente: detalle.numero_expediente,
+        nombre_paciente: detalle.nombre_paciente,
+        sexo: detalle.sexo,
         observaciones: detalle.observaciones
       }, { transaction: t });
     }

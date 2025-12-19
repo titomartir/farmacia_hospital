@@ -27,6 +27,13 @@ const DetalleConsolidado = sequelize.define('detalle_consolidado', {
   numero_registro: {
     type: DataTypes.STRING(50)
   },
+  sexo: {
+    type: DataTypes.STRING(1),
+    allowNull: true,
+    validate: {
+      isIn: [['M', 'F']]
+    }
+  },
   cantidad: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,

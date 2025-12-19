@@ -347,6 +347,7 @@ CREATE TABLE detalle_consolidado (
     numero_cama VARCHAR(10),
     nombre_paciente VARCHAR(200),
     numero_registro VARCHAR(50),
+    sexo VARCHAR(1),
     cantidad NUMERIC(10,2) NOT NULL CHECK (cantidad > 0),
     precio_unitario NUMERIC(10,2) DEFAULT 0,
     subtotal NUMERIC(10,2) GENERATED ALWAYS AS (cantidad * precio_unitario) STORED,

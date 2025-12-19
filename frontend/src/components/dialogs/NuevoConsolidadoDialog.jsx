@@ -129,7 +129,7 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
     try {
       setLoading(true);
       const consolidado = await consolidadoService.obtenerConsolidado(consolidadoEditar.id_consolidado);
-      console.log('Consolidado cargado para edición:', consolidado);
+      console.log('📥 Consolidado cargado para edición:', consolidado);
       
       setFormData({
         id_servicio: consolidado.id_servicio || '',
@@ -147,6 +147,8 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
       if (consolidado.detalles && consolidado.detalles.length > 0) {
         consolidado.detalles.forEach(detalle => {
           const insumoData = detalle.insumoPresentacion?.insumo;
+          const presentacionData = detalle.insumoPresentacion?.presentacion;
+          
           if (insumoData && insumoData.id_insumo) {
             // Almacenar cada medicamento con su presentación específica
             if (!medicamentosMap[insumoData.id_insumo]) {
@@ -154,6 +156,7 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
                 id_insumo: insumoData.id_insumo,
                 id_insumo_presentacion: detalle.id_insumo_presentacion,
                 nombre: insumoData.nombre || '',
+                presentacion: presentacionData?.nombre || '',
                 presentaciones: detalle.insumoPresentacion ? [detalle.insumoPresentacion] : [],
                 precio_unitario: detalle.precio_unitario || 0
               };
@@ -161,21 +164,26 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
           }
 
           const cama = detalle.numero_cama;
-          if (!datosMap[cama]) {
+          const sexoNormalizado = detalle.sexo === 'H' ? 'M' : (detalle.sexo === 'F' ? 'F' : '');
+
+          if (cama && !datosMap[cama]) {
             datosMap[cama] = {
               numero_cama: cama,
               numero_expediente: detalle.numero_registro || '',
               nombre_paciente: detalle.nombre_paciente || '',
-              sexo: detalle.sexo || '',
+              sexo: sexoNormalizado,
               medicamentos: {}
             };
           }
           
-          if (insumoData && insumoData.id_insumo) {
+          if (cama && insumoData && insumoData.id_insumo) {
             datosMap[cama].medicamentos[insumoData.id_insumo] = detalle.cantidad;
           }
         });
       }
+
+      console.log('📊 Medicamentos mapa:', medicamentosMap);
+      console.log('📋 Datos mapa:', datosMap);
 
       setMedicamentosColumnas(Object.values(medicamentosMap));
       
@@ -189,6 +197,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
           medicamentos: {}
         };
       });
+      
+      console.log('🔄 Nueva matriz:', nuevaMatriz);
+      
       setDatosMatriz(nuevaMatriz);
       setEsEdicion(true);
       setError('');
@@ -264,18 +275,22 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
   };
 
   const handleCambiarNombrePaciente = (numeroCama, nombre) => {
+    // No permitir números
+    const sinNumeros = nombre.replace(/[0-9]/g, '');
     setDatosMatriz(datosMatriz.map(fila => {
       if (fila.numero_cama === numeroCama) {
-        return { ...fila, nombre_paciente: nombre };
+        return { ...fila, nombre_paciente: sinNumeros };
       }
       return fila;
     }));
   };
 
   const handleCambiarExpediente = (numeroCama, expediente) => {
+    // Solo permitir números
+    const soloNumeros = expediente.replace(/[^0-9]/g, '');
     setDatosMatriz(datosMatriz.map(fila => {
       if (fila.numero_cama === numeroCama) {
-        return { ...fila, numero_expediente: expediente };
+        return { ...fila, numero_expediente: soloNumeros };
       }
       return fila;
     }));
@@ -325,6 +340,21 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
         return;
       }
 
+      // Validar sexo obligatorio en filas con pacientes y cantidades
+      for (const fila of datosMatriz) {
+        if (fila.nombre_paciente.trim()) {
+          const tieneCantidad = medicamentosColumnas.some(med => {
+            const cantidad = fila.medicamentos?.[med.id_insumo];
+            return cantidad && parseFloat(cantidad) > 0;
+          });
+
+          if (tieneCantidad && (!fila.sexo || !['M', 'F'].includes(fila.sexo))) {
+            setError(`Debe seleccionar sexo (M/F) para la cama ${fila.numero_cama}`);
+            return;
+          }
+        }
+      }
+
       // Construir detalles para el backend
       const detalles = [];
       datosMatriz.forEach(fila => {
@@ -334,10 +364,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
             if (cantidad > 0) {
               detalles.push({
                 numero_cama: fila.numero_cama,
-                numero_expediente: fila.numero_expediente || '',
+                numero_registro: fila.numero_expediente || '',
                 nombre_paciente: fila.nombre_paciente,
-                sexo: fila.sexo || '',
-                numero_registro: fila.numero_expediente || fila.numero_cama.toString(),
+                sexo: fila.sexo,
                 id_insumo_presentacion: med.id_insumo_presentacion || med.id_insumo,
                 cantidad: parseFloat(cantidad),
                 precio_unitario: med.precio_unitario || 0,
@@ -358,9 +387,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
         detalles,
       };
 
-      console.log('Enviando datos al backend:', data);
-      console.log('Medicamentos columnas:', medicamentosColumnas);
-      console.log('Detalles siendo enviados:', detalles);
+      console.log('📤 Enviando datos al backend:', data);
+      console.log('💊 Medicamentos columnas:', medicamentosColumnas);
+      console.log('📋 Detalles siendo enviados:', detalles);
 
       if (esEdicion && consolidadoEditar) {
         await consolidadoService.actualizarConsolidado(consolidadoEditar.id_consolidado, data);
@@ -548,9 +577,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
                         sx={{ justifyContent: 'center', gap: 0.5 }}
                       >
                         <FormControlLabel 
-                          value="H" 
+                          value="M" 
                           control={<Radio size="small" sx={{ p: 0.5 }} />} 
-                          label="H" 
+                          label="M" 
                           sx={{ 
                             mr: 1, 
                             '& .MuiFormControlLabel-label': { 
@@ -560,9 +589,9 @@ const NuevoConsolidadoDialog = ({ open, onClose, onSuccess, consolidadoEditar = 
                           }}
                         />
                         <FormControlLabel 
-                          value="M" 
+                          value="F" 
                           control={<Radio size="small" sx={{ p: 0.5 }} />} 
-                          label="M" 
+                          label="F" 
                           sx={{ 
                             mr: 0, 
                             '& .MuiFormControlLabel-label': { 

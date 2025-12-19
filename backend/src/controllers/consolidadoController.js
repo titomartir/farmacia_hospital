@@ -185,6 +185,7 @@ const crearConsolidado = async (req, res) => {
     let costo_total = 0;
 
     for (const detalle of detalles) {
+      const sexo = detalle.sexo === 'H' ? 'M' : detalle.sexo;
       // Verificar stock disponible
       const insumoPresentacion = await InsumoPresentacion.findByPk(
         detalle.id_insumo_presentacion,
@@ -199,6 +200,15 @@ const crearConsolidado = async (req, res) => {
         });
       }
 
+      // Validar sexo obligatorio (M/F)
+      if (!sexo || !['M', 'F'].includes(sexo)) {
+        await t.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `El campo sexo es obligatorio (M/F) para la cama ${detalle.numero_cama || ''}`
+        });
+      }
+
       // Crear detalle (los triggers de BD se encargan de actualizar inventario)
       const nuevoDetalle = await DetalleConsolidado.create({
         id_consolidado: nuevoConsolidado.id_consolidado,
@@ -207,6 +217,7 @@ const crearConsolidado = async (req, res) => {
         numero_cama: detalle.numero_cama,
         nombre_paciente: detalle.nombre_paciente,
         numero_registro: detalle.numero_registro,
+        sexo,
         cantidad: detalle.cantidad,
         precio_unitario: detalle.precio_unitario || 0,
         observaciones: detalle.observaciones
@@ -539,6 +550,7 @@ const actualizarConsolidado = async (req, res) => {
     let costo_total = 0;
 
     for (const detalle of detalles) {
+      const sexo = detalle.sexo === 'H' ? 'M' : detalle.sexo;
       const insumoPresentacion = await InsumoPresentacion.findByPk(
         detalle.id_insumo_presentacion,
         { transaction: t }
@@ -549,12 +561,19 @@ const actualizarConsolidado = async (req, res) => {
         return res.status(400).json({ success: false, message: `Insumo no encontrado: ${detalle.id_insumo_presentacion}` });
       }
 
+      // Validar sexo obligatorio (M/F)
+      if (!sexo || !['M', 'F'].includes(sexo)) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: `El campo sexo es obligatorio (M/F) para la cama ${detalle.numero_cama || ''}` });
+      }
+
       await DetalleConsolidado.create({
         id_consolidado: id,
         id_insumo_presentacion: detalle.id_insumo_presentacion,
         numero_cama: detalle.numero_cama,
         nombre_paciente: detalle.nombre_paciente,
         numero_registro: detalle.numero_registro,
+        sexo,
         cantidad: detalle.cantidad,
         precio_unitario: detalle.precio_unitario || 0,
         observaciones: detalle.observaciones

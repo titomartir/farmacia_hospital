@@ -15,7 +15,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
   Autocomplete,
   Typography,
   Alert,
@@ -24,8 +23,8 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Chip,
 } from '@mui/material';
-import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import requisicionService from '../../services/requisicionService';
 import servicioService from '../../services/servicioService';
 import insumoService from '../../services/insumoService';
@@ -37,7 +36,7 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
   const [error, setError] = useState('');
   const [esEdicion, setEsEdicion] = useState(false);
 
-  // Encabezado de la requisición
+  // Encabezado
   const [formData, setFormData] = useState({
     id_servicio: '',
     fecha_solicitud: new Date().toISOString(),
@@ -48,18 +47,16 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
   // Medicamentos seleccionados (columnas)
   const [medicamentosColumnas, setMedicamentosColumnas] = useState([]);
 
-  // Matriz de datos: medicamentos × filas de datos del paciente
+  // Matriz de datos: 30 camas
   const [datosMatriz, setDatosMatriz] = useState(
-    Array(10).fill(null).map(() => ({
-      numero_cama: '',
-      numero_registro: '',
+    Array(30).fill(null).map((_, idx) => ({
+      numero_cama: idx + 1,
+      numero_expediente: '',
       nombre_paciente: '',
       sexo: '',
       medicamentos: {},
     }))
   );
-
-  const [medicamentoActual, setMedicamentoActual] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -84,12 +81,12 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
 
   const cargarInsumos = async () => {
     try {
-      const data = await insumoService.getInsumosPresentaciones();
-      setInsumos(Array.isArray(data) ? data : []);
+      const data = await insumoService.getInsumos({ activo: true });
+      const insumosArray = data.data || data;
+      setInsumos(Array.isArray(insumosArray) ? insumosArray : []);
     } catch (err) {
       console.error('Error al cargar insumos:', err);
       setInsumos([]);
-      setError('Error al cargar medicamentos');
     }
   };
 
@@ -102,9 +99,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
     });
     setMedicamentosColumnas([]);
     setDatosMatriz(
-      Array(10).fill(null).map(() => ({
-        numero_cama: '',
-        numero_registro: '',
+      Array(30).fill(null).map((_, idx) => ({
+        numero_cama: idx + 1,
+        numero_expediente: '',
         nombre_paciente: '',
         sexo: '',
         medicamentos: {},
@@ -119,6 +116,8 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
       setLoading(true);
       const requisicion = await requisicionService.obtenerRequisicion(requisicionEditar.id_requisicion);
       
+      console.log('📥 Requisición cargada para edición:', requisicion);
+      
       setFormData({
         id_servicio: requisicion.id_servicio || '',
         fecha_solicitud: requisicion.fecha_solicitud || new Date().toISOString(),
@@ -131,46 +130,57 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
       const datosMap = {};
 
       if (requisicion.detalles && requisicion.detalles.length > 0) {
-        requisicion.detalles.forEach((detalle, idx) => {
+        requisicion.detalles.forEach(detalle => {
           const insumoData = detalle.insumoPresentacion?.insumo;
+          const presentacionData = detalle.insumoPresentacion?.presentacion;
+          
           if (insumoData && insumoData.id_insumo) {
             if (!medicamentosMap[insumoData.id_insumo]) {
               medicamentosMap[insumoData.id_insumo] = {
                 id_insumo: insumoData.id_insumo,
                 id_insumo_presentacion: detalle.id_insumo_presentacion,
                 nombre: insumoData.nombre || '',
+                presentacion: presentacionData?.nombre || '',
                 presentaciones: detalle.insumoPresentacion ? [detalle.insumoPresentacion] : [],
               };
             }
           }
 
-          if (!datosMap[idx]) {
-            datosMap[idx] = {
-              numero_cama: detalle.numero_cama || '',
-              numero_registro: detalle.numero_expediente || '',
+          const cama = detalle.numero_cama;
+          if (cama && !datosMap[cama]) {
+            datosMap[cama] = {
+              numero_cama: cama,
+              numero_expediente: detalle.numero_expediente || '',
               nombre_paciente: detalle.nombre_paciente || '',
               sexo: detalle.sexo || '',
               medicamentos: {}
             };
           }
-
-          if (insumoData && insumoData.id_insumo) {
-            datosMap[idx].medicamentos[insumoData.id_insumo] = detalle.cantidad_solicitada;
+          
+          if (cama && insumoData && insumoData.id_insumo) {
+            datosMap[cama].medicamentos[insumoData.id_insumo] = detalle.cantidad_solicitada;
           }
         });
       }
 
+      console.log('📊 Medicamentos mapa:', medicamentosMap);
+      console.log('📋 Datos mapa:', datosMap);
+      
       setMedicamentosColumnas(Object.values(medicamentosMap));
       
-      const nuevaMatriz = Array(10).fill(null).map((_, idx) => {
-        return datosMap[idx] || {
-          numero_cama: '',
-          numero_registro: '',
+      const nuevaMatriz = Array(30).fill(null).map((_, idx) => {
+        const cama = idx + 1;
+        return datosMap[cama] || {
+          numero_cama: cama,
+          numero_expediente: '',
           nombre_paciente: '',
           sexo: '',
           medicamentos: {}
         };
       });
+      
+      console.log('🔄 Nueva matriz:', nuevaMatriz);
+      
       setDatosMatriz(nuevaMatriz);
       setEsEdicion(true);
       setError('');
@@ -179,9 +189,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
       setError('Error al cargar requisición para editar');
       setEsEdicion(false);
       setDatosMatriz(
-        Array(10).fill(null).map(() => ({
-          numero_cama: '',
-          numero_registro: '',
+        Array(30).fill(null).map((_, idx) => ({
+          numero_cama: idx + 1,
+          numero_expediente: '',
           nombre_paciente: '',
           sexo: '',
           medicamentos: {},
@@ -199,20 +209,20 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
       return;
     }
 
-    const presentacion = insumo.presentaciones && insumo.presentaciones.length > 0 
-      ? insumo.presentaciones[0] 
-      : null;
-    
-    if (!presentacion) {
-      setError('Este medicamento no tiene presentaciones disponibles');
+    const id_insumo_presentacion = insumo.id_insumo_presentacion || 
+      (insumo.presentaciones && insumo.presentaciones.length > 0 
+        ? insumo.presentaciones[0].id_insumo_presentacion 
+        : null);
+
+    if (!id_insumo_presentacion) {
+      setError('Este medicamento no tiene presentación disponible');
       return;
     }
 
     setMedicamentosColumnas([...medicamentosColumnas, {
       ...insumo,
-      id_insumo_presentacion: presentacion.id_insumo_presentacion,
+      id_insumo_presentacion,
     }]);
-    setMedicamentoActual(null);
     setError('');
   };
 
@@ -226,9 +236,9 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
     }));
   };
 
-  const handleCambiarCantidad = (index, idInsumo, cantidad) => {
-    setDatosMatriz(datosMatriz.map((fila, i) => {
-      if (i === index) {
+  const handleCambiarCantidad = (numeroCama, idInsumo, cantidad) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
         return {
           ...fila,
           medicamentos: {
@@ -241,40 +251,47 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
     }));
   };
 
-  const handleCambiarNumeroCama = (index, valor) => {
-    setDatosMatriz(datosMatriz.map((fila, i) => {
-      if (i === index) {
-        return { ...fila, numero_cama: valor };
+  const handleCambiarExpediente = (numeroCama, expediente) => {
+    // Solo permitir números
+    const soloNumeros = expediente.replace(/[^0-9]/g, '');
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, numero_expediente: soloNumeros };
       }
       return fila;
     }));
   };
 
-  const handleCambiarExpediente = (index, valor) => {
-    setDatosMatriz(datosMatriz.map((fila, i) => {
-      if (i === index) {
-        return { ...fila, numero_registro: valor };
+  const handleCambiarNombrePaciente = (numeroCama, nombre) => {
+    // No permitir números
+    const sinNumeros = nombre.replace(/[0-9]/g, '');
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, nombre_paciente: sinNumeros };
       }
       return fila;
     }));
   };
 
-  const handleCambiarNombrePaciente = (index, valor) => {
-    setDatosMatriz(datosMatriz.map((fila, i) => {
-      if (i === index) {
-        return { ...fila, nombre_paciente: valor };
+  const handleCambiarSexo = (numeroCama, sexo) => {
+    setDatosMatriz(datosMatriz.map(fila => {
+      if (fila.numero_cama === numeroCama) {
+        return { ...fila, sexo };
       }
       return fila;
     }));
   };
 
-  const handleCambiarSexo = (index, valor) => {
-    setDatosMatriz(datosMatriz.map((fila, i) => {
-      if (i === index) {
-        return { ...fila, sexo: valor };
-      }
-      return fila;
-    }));
+  const calcularTotalPorMedicamento = (idInsumo) => {
+    if (!idInsumo || !datosMatriz) return 0;
+    try {
+      return datosMatriz.reduce((sum, fila) => {
+        return sum + (parseFloat(fila?.medicamentos?.[idInsumo]) || 0);
+      }, 0);
+    } catch (err) {
+      console.warn('Error al calcular total:', err);
+      return 0;
+    }
   };
 
   const handleSubmit = async () => {
@@ -291,26 +308,24 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
 
       // Construir detalles desde la matriz
       const detalles = [];
-      datosMatriz.forEach((fila, index) => {
-        if (fila.nombre_paciente || fila.numero_cama) {
-          medicamentosColumnas.forEach(med => {
-            const cantidad = fila.medicamentos[med.id_insumo];
-            if (cantidad && cantidad > 0) {
-              detalles.push({
-                id_insumo_presentacion: med.id_insumo_presentacion,
-                cantidad_solicitada: cantidad,
-                numero_cama: fila.numero_cama,
-                numero_expediente: fila.numero_registro,
-                nombre_paciente: fila.nombre_paciente,
-                sexo: fila.sexo,
-              });
-            }
-          });
-        }
+      datosMatriz.forEach(fila => {
+        medicamentosColumnas.forEach(med => {
+          const cantidad = fila.medicamentos[med.id_insumo];
+          if (cantidad && cantidad > 0) {
+            detalles.push({
+              id_insumo_presentacion: med.id_insumo_presentacion,
+              cantidad_solicitada: cantidad,
+              numero_cama: fila.numero_cama,
+              numero_expediente: fila.numero_expediente,
+              nombre_paciente: fila.nombre_paciente,
+              sexo: fila.sexo,
+            });
+          }
+        });
       });
 
       if (detalles.length === 0) {
-        setError('Ingrese al menos una cantidad de medicamento para un paciente');
+        setError('Ingrese al menos una cantidad de medicamento');
         return;
       }
 
@@ -324,6 +339,8 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
         observaciones: formData.observaciones,
         detalles,
       };
+
+      console.log('📤 Payload being sent:', JSON.stringify(payload, null, 2));
 
       if (esEdicion && requisicionEditar) {
         await requisicionService.actualizarRequisicion(requisicionEditar.id_requisicion, payload);
@@ -408,123 +425,157 @@ const NuevaRequisicionDialog = ({ open, onClose, onSuccess, requisicionEditar = 
           </Grid>
         </Paper>
 
-        {/* Agregar medicamentos */}
+        {/* Selector de medicamentos */}
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-          <Stack direction="row" spacing={2} alignItems="flex-end">
+          <Typography variant="subtitle1" gutterBottom>
+            Medicamentos a Solicitar
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Autocomplete
-              sx={{ flex: 1 }}
               options={insumos}
               getOptionLabel={(option) => {
-                const nombreInsumo = option.insumo?.nombre || 'Sin nombre';
-                const presentacion = option.presentacion?.nombre || '';
-                return `${nombreInsumo}${presentacion ? ' - ' + presentacion : ''}`;
+                const nombre = option.nombre || option.nombre_generico || 'Sin nombre';
+                return nombre;
               }}
-              value={medicamentoActual}
-              onChange={(_, newValue) => setMedicamentoActual(newValue)}
+              onChange={(e, value) => handleAgregarMedicamento(value)}
               renderInput={(params) => (
-                <TextField {...params} label="Buscar medicamento..." size="small" />
+                <TextField {...params} label="Buscar medicamento..." placeholder="Escriba para buscar" />
               )}
-              isOptionEqualToValue={(option, value) => 
-                option.id_insumo_presentacion === value?.id_insumo_presentacion
-              }
-              noOptionsText="No se encontraron medicamentos"
+              isOptionEqualToValue={(option, value) => option.id_insumo === value?.id_insumo}
+              noOptionsText={insumos.length === 0 ? "No hay medicamentos disponibles" : "No se encontraron resultados"}
+              sx={{ flex: 1 }}
             />
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleAgregarMedicamento(medicamentoActual)}
-              sx={{ height: '40px' }}
-            >
-              Agregar
-            </Button>
           </Stack>
+
+          <Box sx={{ mt: 2 }}>
+            {medicamentosColumnas.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                Agregue los medicamentos que desea solicitar
+              </Typography>
+            ) : (
+              medicamentosColumnas.map((med) => (
+                <Chip
+                  key={med.id_insumo}
+                  label={med.nombre || med.nombre_generico}
+                  onDelete={() => handleEliminarMedicamento(med.id_insumo)}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mr: 1, mb: 1 }}
+                />
+              ))
+            )}
+          </Box>
         </Paper>
 
-        {/* Matriz de datos */}
+        {/* Matriz de requisición */}
         {medicamentosColumnas.length > 0 && (
-          <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-            <Table size="small">
+          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+            <Table stickyHeader size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>CAMA</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>EXPEDIENTE</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 150 }}>PACIENTE</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>SEXO</TableCell>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold', width: 60 }}>CAMA</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 120 }}>EXPEDIENTE</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 190 }}>PACIENTE</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: 80, textAlign: 'center' }}>SEXO</TableCell>
                   {medicamentosColumnas.map((med) => (
-                    <TableCell key={med.id_insumo} sx={{ fontWeight: 600, minWidth: 120, textAlign: 'center' }}>
-                      <Box>
-                        <Typography variant="caption" display="block">
-                          {med.nombre}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleEliminarMedicamento(med.id_insumo)}
-                          sx={{ p: 0 }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
+                    <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold', minWidth: 100 }}>
+                      {med.nombre || med.nombre_generico}
                     </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {datosMatriz.map((fila, index) => (
-                  <TableRow key={index} hover>
+                {datosMatriz.map((fila) => (
+                  <TableRow key={fila.numero_cama}>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>{fila.numero_cama}</TableCell>
                     <TableCell>
                       <TextField
+                        fullWidth
                         size="small"
-                        value={fila.numero_cama}
-                        onChange={(e) => handleCambiarNumeroCama(index, e.target.value)}
-                        placeholder="Cama"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        value={fila.numero_registro}
-                        onChange={(e) => handleCambiarExpediente(index, e.target.value)}
+                        value={fila.numero_expediente}
+                        onChange={(e) => handleCambiarExpediente(fila.numero_cama, e.target.value)}
                         placeholder="Expediente"
-                        variant="outlined"
+                        inputProps={{ 
+                          maxLength: 11,
+                          style: { fontSize: '0.8rem' }
+                        }}
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
+                        fullWidth
                         size="small"
                         value={fila.nombre_paciente}
-                        onChange={(e) => handleCambiarNombrePaciente(index, e.target.value)}
+                        onChange={(e) => handleCambiarNombrePaciente(fila.numero_cama, e.target.value)}
                         placeholder="Nombre"
-                        variant="outlined"
+                        inputProps={{
+                          pattern: '[A-Za-záéíóúÁÉÍÓÚ\\s]*',
+                          style: { fontSize: '0.8rem' }
+                        }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ px: 0.5 }}>
                       <RadioGroup
                         row
                         value={fila.sexo}
-                        onChange={(e) => handleCambiarSexo(index, e.target.value)}
-                        sx={{ justifyContent: 'space-around' }}
+                        onChange={(e) => handleCambiarSexo(fila.numero_cama, e.target.value)}
+                        sx={{ justifyContent: 'center', gap: 0.5 }}
                       >
-                        <FormControlLabel value="M" control={<Radio size="small" />} label="M" />
-                        <FormControlLabel value="F" control={<Radio size="small" />} label="F" />
+                        <FormControlLabel 
+                          value="H" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="H" 
+                          sx={{ 
+                            mr: 1, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
+                        <FormControlLabel 
+                          value="M" 
+                          control={<Radio size="small" sx={{ p: 0.5 }} />} 
+                          label="M" 
+                          sx={{ 
+                            mr: 0, 
+                            '& .MuiFormControlLabel-label': { 
+                              fontSize: '0.875rem',
+                              ml: 0.3
+                            } 
+                          }}
+                        />
                       </RadioGroup>
                     </TableCell>
                     {medicamentosColumnas.map((med) => (
                       <TableCell key={med.id_insumo} align="center">
                         <TextField
-                          size="small"
                           type="number"
+                          size="small"
                           value={fila.medicamentos[med.id_insumo] || ''}
-                          onChange={(e) => handleCambiarCantidad(index, med.id_insumo, e.target.value)}
-                          placeholder="0"
-                          variant="outlined"
-                          inputProps={{ min: 0, step: 0.01 }}
+                          onChange={(e) => handleCambiarCantidad(fila.numero_cama, med.id_insumo, e.target.value)}
+                          inputProps={{ min: 0, step: 0.5, style: { textAlign: 'center' } }}
+                          sx={{ width: 80 }}
                         />
                       </TableCell>
                     ))}
                   </TableRow>
                 ))}
+
+                {/* Fila de totales */}
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell colSpan={4} sx={{ fontWeight: 'bold' }}>
+                    TOTALES
+                  </TableCell>
+                  {medicamentosColumnas.map((med) => {
+                    const total = calcularTotalPorMedicamento(med.id_insumo);
+                    return (
+                      <TableCell key={med.id_insumo} align="center" sx={{ fontWeight: 'bold' }}>
+                        {(total || 0).toFixed(1)}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>

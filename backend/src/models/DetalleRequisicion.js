@@ -59,7 +59,7 @@ const DetalleRequisicion = sequelize.define('detalle_requisicion', {
     type: DataTypes.CHAR(1),
     allowNull: true,
     validate: {
-      isIn: [['M', 'H']]
+      isIn: [[null, '', 'M', 'H']]
     }
   },
   observaciones: {
