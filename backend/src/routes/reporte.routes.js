@@ -33,4 +33,11 @@ router.get('/consumo-servicio', reporteController.consumoPorServicio);
  */
 router.get('/stock-actual', reporteController.stockActual);
 
+/**
+ * GET /api/reportes/kardex/:id_insumo
+ * Kardex de un medicamento específico
+ * Query params: fecha_inicio, fecha_fin
+ */
+router.get('/kardex/:id_insumo', reporteController.generarKardex);
+
 module.exports = router;

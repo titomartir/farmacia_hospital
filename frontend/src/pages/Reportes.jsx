@@ -6,7 +6,9 @@ import {
 } from '@mui/material';
 import {
   Download as DownloadIcon, Print as PrintIcon, Search as SearchIcon, Assessment as AssessmentIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
+import KardexDialog from '../components/reportes/KardexDialog';
   // Exportar a Excel - Resumen Total
   const exportarResumenTotalExcel = () => {
     if (!resumenTotal) return;
@@ -155,6 +157,7 @@ const Reportes = () => {
   const [resumenTotal, setResumenTotal] = useState(null);
   const [resumenServicio, setResumenServicio] = useState(null);
   const [consumoServicios, setConsumoServicios] = useState(null);
+  const [kardexDialogOpen, setKardexDialogOpen] = useState(false);
 
   useEffect(() => {
     cargarServicios();
@@ -275,6 +278,7 @@ const Reportes = () => {
           <Tab label="Resumen Total por Medicamento" />
           <Tab label="Resumen por Servicio" />
           <Tab label="Consumo por Servicio" />
+          <Tab label="Kardex de Medicamento" />
         </Tabs>
 
         <CardContent>
@@ -453,8 +457,30 @@ const Reportes = () => {
               )}
             </Box>
           )}
+
+          {tabActual === 3 && (
+            <Box>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                Genera el reporte de Kardex de un medicamento específico con el detalle de entradas, salidas y saldos.
+              </Typography>
+              <Button 
+                variant="contained" 
+                size="large"
+                startIcon={<DescriptionIcon />} 
+                onClick={() => setKardexDialogOpen(true)}
+                sx={{ mb: 2 }}
+              >
+                Generar Kardex
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
+
+      <KardexDialog 
+        open={kardexDialogOpen} 
+        onClose={() => setKardexDialogOpen(false)} 
+      />
     </Box>
   );
 };

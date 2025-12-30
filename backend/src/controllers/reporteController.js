@@ -7,6 +7,7 @@ const Insumo = require('../models/Insumo');
 const InsumoPresentacion = require('../models/InsumoPresentacion');
 const Presentacion = require('../models/Presentacion');
 const Servicio = require('../models/Servicio');
+const { calcularSaldos, calcularTotales, formatearValor } = require('../utils/kardexCalculations');
 
 /**
  * Reporte: Resumen Total por Medicamento (Todos los Servicios)
@@ -364,9 +365,186 @@ const stockActual = async (req, res) => {
   }
 };
 
+/**
+ * Reporte: Kardex de Medicamento
+ * Muestra el historial detallado de un medicamento con entradas, salidas y saldos
+ */
+const generarKardex = async (req, res) => {
+  try {
+    const { id_insumo } = req.params;
+    const { fecha_inicio, fecha_fin } = req.query;
+
+    if (!id_insumo) {
+      return res.status(400).json({
+        success: false,
+        message: 'El ID del medicamento es requerido'
+      });
+    }
+
+    if (!fecha_inicio || !fecha_fin) {
+      return res.status(400).json({
+        success: false,
+        message: 'Las fechas desde y hasta son requeridas'
+      });
+    }
+
+    logger.info(`Generando Kardex para insumo ${id_insumo}: ${fecha_inicio} a ${fecha_fin}`);
+
+    // Obtener información del medicamento
+    const insumo = await Insumo.findByPk(id_insumo, {
+      include: [
+        {
+          model: InsumoPresentacion,
+          as: 'presentaciones',
+          include: [
+            { model: Presentacion, as: 'presentacion' },
+            { model: sequelize.models.unidad_medida, as: 'unidad_medida' }
+          ]
+        }
+      ]
+    });
+
+    if (!insumo) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medicamento no encontrado'
+      });
+    }
+
+    // Consultar INGRESOS
+    const queryIngresos = `
+      SELECT 
+        di.id_detalle_ingreso,
+        i.fecha_ingreso as fecha,
+        'I-' || i.id_ingreso::text as correlativo,
+        'Ingreso' as descripcion,
+        di.cantidad as entrada_cantidad,
+        COALESCE(di.precio_unitario, 0) as entrada_costo,
+        (di.cantidad * COALESCE(di.precio_unitario, 0)) as entrada_valor,
+        0 as salida_cantidad,
+        0 as salida_costo,
+        0 as salida_valor,
+        p.nombre as presentacion_nombre,
+        um.nombre as unidad_medida
+      FROM detalle_ingreso di
+      JOIN ingreso i ON di.id_ingreso = i.id_ingreso
+      JOIN insumo_presentacion ip ON di.id_insumo_presentacion = ip.id_insumo_presentacion
+      JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
+      JOIN unidad_medida um ON ip.id_unidad_medida = um.id_unidad_medida
+      WHERE ip.id_insumo = $1
+        AND i.fecha_ingreso BETWEEN $2::date AND $3::date
+      ORDER BY i.fecha_ingreso ASC, i.id_ingreso ASC
+    `;
+
+    const ingresos = await sequelize.query(queryIngresos, {
+      replacements: [id_insumo, fecha_inicio, fecha_fin],
+      type: QueryTypes.SELECT
+    });
+
+    // Consultar CONSOLIDADOS (SALIDAS)
+    const queryConsolidados = `
+      SELECT 
+        dc.id_detalle_consolidado,
+        c.fecha_consolidado as fecha,
+        'C-' || c.id_consolidado::text as correlativo,
+        'Consolidado' as descripcion,
+        0 as entrada_cantidad,
+        0 as entrada_costo,
+        0 as entrada_valor,
+        dc.cantidad as salida_cantidad,
+        COALESCE(dc.precio_unitario, 0) as salida_costo,
+        (dc.cantidad * COALESCE(dc.precio_unitario, 0)) as salida_valor,
+        p.nombre as presentacion_nombre,
+        um.nombre as unidad_medida
+      FROM detalle_consolidado dc
+      JOIN consolidado c ON dc.id_consolidado = c.id_consolidado
+      JOIN insumo_presentacion ip ON dc.id_insumo_presentacion = ip.id_insumo_presentacion
+      JOIN presentacion p ON ip.id_presentacion = p.id_presentacion
+      JOIN unidad_medida um ON ip.id_unidad_medida = um.id_unidad_medida
+      WHERE ip.id_insumo = $1
+        AND c.fecha_consolidado BETWEEN $2::date AND $3::date
+      ORDER BY c.fecha_consolidado ASC, c.id_consolidado ASC
+    `;
+
+    const consolidados = await sequelize.query(queryConsolidados, {
+      replacements: [id_insumo, fecha_inicio, fecha_fin],
+      type: QueryTypes.SELECT
+    });
+
+    // Combinar y ordenar movimientos por fecha
+    let movimientos = [...ingresos, ...consolidados];
+    movimientos.sort((a, b) => {
+      const dateA = new Date(a.fecha);
+      const dateB = new Date(b.fecha);
+      return dateA - dateB;
+    });
+
+    // Calcular saldos
+    movimientos = calcularSaldos(movimientos);
+
+    // Obtener info del medicamento
+    const nombreMedicamento = insumo.nombre || 'Medicamento desconocido';
+    const presentacion = insumo.presentaciones?.[0];
+    const presentacionNombre = presentacion?.presentacion?.nombre || 'Desconocida';
+    const unidadMedida = presentacion?.unidad_medida?.nombre || 'ud';
+
+    // Calcular totales
+    const totales = calcularTotales(movimientos);
+
+    // Formatear valores
+    const movimientosFormateados = movimientos.map(mov => ({
+      fecha: mov.fecha ? mov.fecha.toISOString().split('T')[0] : '',
+      correlativo: mov.correlativo,
+      descripcion: mov.descripcion,
+      unidad_medida: unidadMedida,
+      entrada_cantidad: formatearValor(mov.entrada_cantidad, 0),
+      entrada_costo: formatearValor(mov.entrada_costo, 2),
+      entrada_valor: formatearValor(mov.entrada_valor, 2),
+      salida_cantidad: formatearValor(mov.salida_cantidad, 0),
+      salida_costo: formatearValor(mov.salida_costo, 2),
+      salida_valor: formatearValor(mov.salida_valor, 2),
+      saldo_cantidad: formatearValor(mov.saldo_cantidad, 0),
+      saldo_costo: formatearValor(mov.saldo_costo, 2),
+      saldo_valor: formatearValor(mov.saldo_valor, 2)
+    }));
+
+    logger.info(`Kardex generado: ${movimientosFormateados.length} movimientos`);
+
+    res.json({
+      success: true,
+      data: {
+        medicamento: nombreMedicamento,
+        presentacion: presentacionNombre,
+        unidad_medida: unidadMedida,
+        periodo: {
+          fecha_inicio,
+          fecha_fin
+        },
+        movimientos: movimientosFormateados,
+        totales: {
+          entrada_cantidad: formatearValor(totales.entrada_cantidad, 0),
+          entrada_valor: formatearValor(totales.entrada_valor, 2),
+          salida_cantidad: formatearValor(totales.salida_cantidad, 0),
+          salida_valor: formatearValor(totales.salida_valor, 2),
+          saldo_cantidad: formatearValor(totales.saldo_cantidad, 0),
+          saldo_valor: formatearValor(totales.saldo_valor, 2)
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Error al generar Kardex:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al generar Kardex',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   resumenTotalMedicamentos,
   resumenPorServicio,
   consumoPorServicio,
-  stockActual
+  stockActual,
+  generarKardex
 };
