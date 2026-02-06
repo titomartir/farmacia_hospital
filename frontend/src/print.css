@@ -1,4 +1,26 @@
+@media screen {
+  .print-header {
+    display: none;
+  }
+}
+
 @media print {
+  .print-header {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 10px 12px;
+    margin: 0 0 12px 0;
+    border-bottom: 1px solid #d0d0d0;
+  }
+  .print-header img {
+    width: 54px !important;
+    height: 54px !important;
+    object-fit: contain !important;
+  }
+  .MuiAppBar-root {
+    display: none !important;
+  }
   /* Centrar y expandir el área del reporte solo para la página de Reportes */
   body {
     background: white !important;

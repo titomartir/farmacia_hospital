@@ -146,6 +146,16 @@ const Layout = () => {
             >
               <MenuIcon />
             </IconButton>
+            <Box
+              component="img"
+              src="/hospital-logo.svg"
+              alt="Logo del hospital"
+              sx={{
+                width: 36,
+                height: 36,
+                objectFit: 'contain',
+              }}
+            />
             <Box>
               <Typography 
                 variant="h6" 
@@ -231,6 +241,38 @@ const Layout = () => {
       >
         <Toolbar />
         <Box sx={{ overflow: 'auto', py: 2, px: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              px: 1,
+              py: 1.2,
+              mb: 2,
+              borderRadius: 2,
+              bgcolor: 'rgba(255, 255, 255, 0.12)',
+            }}
+          >
+            <Box
+              component="img"
+              src="/hospital-logo.svg"
+              alt="Logo del hospital"
+              sx={{
+                width: 40,
+                height: 40,
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.25))',
+              }}
+            />
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                Sistema de Farmacia
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                Hospital
+              </Typography>
+            </Box>
+          </Box>
           <List sx={{ gap: 0.5, display: 'flex', flexDirection: 'column' }}>
             {(modulesByRole[usuario?.rol] || []).map((item) => (
               <ListItem key={item.text} disablePadding>
@@ -281,6 +323,22 @@ const Layout = () => {
         }}
       >
         <Toolbar />
+        <Box className="print-header">
+          <Box
+            component="img"
+            src="/hospital-logo.svg"
+            alt="Logo del hospital"
+            sx={{ width: 54, height: 54, objectFit: 'contain' }}
+          />
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              Sistema de Farmacia
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Hospital
+            </Typography>
+          </Box>
+        </Box>
         <Box sx={{ p: 3 }}>
           <Outlet />
         </Box>

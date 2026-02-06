@@ -13,7 +13,6 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import { LocalHospital } from '@mui/icons-material';
 import { loginStart, loginSuccess, loginFailure } from '../redux/slices/authSlice';
 import api from '../services/api';
 
@@ -104,15 +103,20 @@ const Login = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 80,
-                height: 80,
+                width: 86,
+                height: 86,
                 borderRadius: '50%',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 mb: 3,
                 boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
               }}
             >
-              <LocalHospital sx={{ fontSize: 48, color: 'white' }} />
+              <Box
+                component="img"
+                src="/hospital-logo.svg"
+                alt="Logo del hospital"
+                sx={{ width: 56, height: 56, objectFit: 'contain' }}
+              />
             </Box>
             <Typography 
               variant="h4" 
