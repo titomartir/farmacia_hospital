@@ -1,110 +1,72 @@
+version: '3.8'
 services:
-  # PostgreSQL Database
   db:
     image: postgres:15-alpine
     container_name: farmacia_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-farmacia_dinamica}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: farmacia_hospital
+      POSTGRES_USER: farmacia_hospital
+      POSTGRES_PASSWORD: farmacia_hospital
       POSTGRES_INITDB_ARGS: "-E UTF8"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - farmacia_postgres_data:/var/lib/postgresql/data
       - ./farmacia_sistema_dinamico.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/02-init-data.sh
       - ./csv:/csv
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-farmacia_dinamica}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d farmacia_dinamica"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - farmacia_network
 
-  # Backend Node.js/Express
   backend:
+    image: titomartir/farmacia_hospital:backend
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: farmacia_backend
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: ${BACKEND_PORT:-3000}
+      NODE_ENV: development
+      PORT: 3001
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-farmacia_dinamica}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-farmacia_secret_key_2024}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
-    volumes:
-      - ./backend/src:/app/src
-      - ./backend/logs:/app/logs
-      - ./csv:/app/csv
+      DB_NAME: farmacia_hospital
     ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      - "3001:3001"
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
     networks:
       - farmacia_network
 
-  # Frontend React/Vite - MODO DESARROLLO
   frontend:
+    image: titomartir/farmacia_hospital:frontend
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: farmacia_frontend
     restart: unless-stopped
     environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000/api}
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-      - ./frontend/index.html:/app/index.html
-      - ./frontend/vite.config.js:/app/vite.config.js
-      - ./frontend/.env:/app/.env
+      VITE_API_URL: http://192.168.10.253:3001
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
-    depends_on:
-      - backend
-    networks:
-      - farmacia_network
-
-  # pgAdmin - Cliente web para PostgreSQL
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: farmacia_pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@farmacia.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    depends_on:
-      - db
+      - "8081:80"
     networks:
       - farmacia_network
 
 volumes:
-  postgres_data:
-    name: farmacia_postgres_data
-  pgadmin_data:
-    name: farmacia_pgadmin_data
+  farmacia_postgres_data:
 
 networks:
   farmacia_network:
-    name: farmacia_network
     driver: bridge
